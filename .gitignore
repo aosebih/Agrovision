@@ -1,0 +1,128 @@
+# -----------------------------
+
+# OS Files
+
+# -----------------------------
+
+.DS_Store
+Thumbs.db
+
+# -----------------------------
+
+# IDE / Editors
+
+# -----------------------------
+
+.vscode/
+.idea/
+*.iml
+
+# -----------------------------
+
+# Environment variables
+
+# -----------------------------
+
+.env
+.env.*
+*.env
+
+# -----------------------------
+
+# Logs
+
+# -----------------------------
+
+*.log
+logs/
+
+# -----------------------------
+
+# Flutter
+
+# -----------------------------
+
+**/.dart_tool/
+**/.packages
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.pub-cache
+**/build/
+**/coverage/
+
+# iOS Flutter
+
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+
+# Android Flutter
+
+**/android/.gradle/
+**/android/app/debug
+**/android/app/profile
+**/android/app/release
+
+# -----------------------------
+
+# Node / NestJS
+
+# -----------------------------
+
+**/node_modules/
+**/dist/
+**/coverage/
+**/.nestjs-cache
+
+# -----------------------------
+
+# Database
+
+# -----------------------------
+
+*.sqlite
+*.db
+
+# -----------------------------
+
+# AI / ML model files (large)
+
+# -----------------------------
+
+*.pt
+*.pth
+*.bin
+*.gguf
+*.onnx
+*.tflite
+*.h5
+
+# -----------------------------
+
+# Temporary files
+
+# -----------------------------
+
+*.tmp
+*.temp
+*.swp
+*~
+
+# -----------------------------
+
+# Build artifacts
+
+# -----------------------------
+
+build/
+dist/
+out/
+
+# -----------------------------
+
+# Misc
+
+# -----------------------------
+
+*.lock
