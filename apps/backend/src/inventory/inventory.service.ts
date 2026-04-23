@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { InventoryItem, ItemCategory } from './inventory-item.entity';
+import { CreateInventoryItemDto } from './dto/create-inventory-item.dto';
 import { PaginationDto, PaginatedResult } from '../common/dto/pagination.dto';
 
 @Injectable()

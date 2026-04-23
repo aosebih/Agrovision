@@ -29,15 +29,19 @@ export class UsersService {
   async getProfile(id: string): Promise<User> {
     const user = await this.findById(id);
     if (!user) throw new NotFoundException('User not found');
-    delete user.password;
-    return user;
+    const { password, ...result } = user;
+    return result as User;
   }
 
   async update(id: string, dto: UpdateUserDto): Promise<User> {
     const user = await this.findById(id);
     if (!user) throw new NotFoundException('User not found');
-    if (dto.password) dto.password = await bcrypt.hash(dto.password, 10);
-    Object.assign(user, dto);
+    if (dto.password) {
+      const hashedPassword = await bcrypt.hash(dto.password, 10);
+      Object.assign(user, { ...dto, password: hashedPassword });
+    } else {
+      Object.assign(user, dto);
+    }
     return this.userRepo.save(user);
   }
 }
