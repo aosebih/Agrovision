@@ -1,0 +1,361 @@
+### Farmer's Helper Backend API Tests
+### Use with REST Client extension in VS Code or any HTTP client
+
+@baseUrl = http://localhost:3000/api/v1
+@token = your_token_here
+
+### Health Check
+GET {{baseUrl}}/
+
+###
+### Authentication
+###
+
+### Register New User
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "farmer@example.com",
+  "name": "John Farmer",
+  "password": "password123",
+  "farmName": "Green Valley Farm"
+}
+
+### Login
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "farmer@example.com",
+  "password": "password123"
+}
+
+### Extract token from login response
+@authToken = {{login.response.body.access_token}}
+
+###
+### Fields Management
+###
+
+### Get All Fields
+GET {{baseUrl}}/fields
+Authorization: Bearer {{authToken}}
+
+### Create Field
+POST {{baseUrl}}/fields
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "North Field",
+  "location": "Section A",
+  "areaHectares": 12.5,
+  "soilType": "Clay Loam",
+  "latitude": 40.7128,
+  "longitude": -74.0060
+}
+
+### Get Single Field
+GET {{baseUrl}}/fields/{{fieldId}}
+Authorization: Bearer {{authToken}}
+
+### Update Field
+PATCH {{baseUrl}}/fields/{{fieldId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "status": "active",
+  "areaHectares": 13.0
+}
+
+### Delete Field
+DELETE {{baseUrl}}/fields/{{fieldId}}
+Authorization: Bearer {{authToken}}
+
+###
+### Crops Management
+###
+
+### Get All Crops
+GET {{baseUrl}}/crops
+Authorization: Bearer {{authToken}}
+
+### Create Crop
+POST {{baseUrl}}/crops
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Corn",
+  "variety": "Yellow Dent",
+  "fieldId": "{{fieldId}}",
+  "plantedDate": "2024-03-01",
+  "expectedHarvestDate": "2024-07-15",
+  "status": "planted"
+}
+
+### Get Crop by ID
+GET {{baseUrl}}/crops/{{cropId}}
+Authorization: Bearer {{authToken}}
+
+### Update Crop
+PATCH {{baseUrl}}/crops/{{cropId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "status": "growing",
+  "growthStage": "vegetative",
+  "healthScore": 85.5
+}
+
+###
+### Irrigation Management
+###
+
+### Get All Irrigation Zones
+GET {{baseUrl}}/irrigation/zones
+Authorization: Bearer {{authToken}}
+
+### Create Irrigation Zone
+POST {{baseUrl}}/irrigation/zones
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Zone A",
+  "fieldId": "{{fieldId}}",
+  "method": "drip",
+  "flowRateLph": 150.5
+}
+
+### Activate Irrigation Zone
+POST {{baseUrl}}/irrigation/zones/{{zoneId}}/activate
+Authorization: Bearer {{authToken}}
+
+### Stop Irrigation Zone
+POST {{baseUrl}}/irrigation/zones/{{zoneId}}/stop
+Authorization: Bearer {{authToken}}
+
+### Get Irrigation Events
+GET {{baseUrl}}/irrigation/events
+Authorization: Bearer {{authToken}}
+
+### Create Irrigation Event
+POST {{baseUrl}}/irrigation/events
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "zoneId": "{{zoneId}}",
+  "startedAt": "2024-04-23T10:00:00Z",
+  "durationMinutes": 60
+}
+
+###
+### Fertilizers Management
+###
+
+### Get All Fertilizers
+GET {{baseUrl}}/fertilizers
+Authorization: Bearer {{authToken}}
+
+### Create Fertilizer
+POST {{baseUrl}}/fertilizers
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "NPK 20-20-20",
+  "brand": "AgroPlus",
+  "type": "NPK",
+  "nitrogenPct": 20,
+  "phosphorusPct": 20,
+  "potassiumPct": 20,
+  "unit": "kg"
+}
+
+### Get Fertilizer Applications
+GET {{baseUrl}}/fertilizers/applications
+Authorization: Bearer {{authToken}}
+
+### Create Fertilizer Application
+POST {{baseUrl}}/fertilizers/applications
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "fertilizerId": "{{fertilizerId}}",
+  "fieldId": "{{fieldId}}",
+  "quantity": 50,
+  "unit": "kg",
+  "appliedAt": "2024-04-23T08:00:00Z",
+  "method": "broadcast"
+}
+
+###
+### Inventory Management
+###
+
+### Get All Inventory Items
+GET {{baseUrl}}/inventory
+Authorization: Bearer {{authToken}}
+
+### Get Low Stock Items
+GET {{baseUrl}}/inventory/low-stock
+Authorization: Bearer {{authToken}}
+
+### Create Inventory Item
+POST {{baseUrl}}/inventory
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Urea Fertilizer",
+  "category": "fertilizer",
+  "brand": "FarmChem",
+  "quantity": 500,
+  "unit": "kg",
+  "minStockLevel": 100,
+  "pricePerUnit": 0.85
+}
+
+### Update Inventory Item
+PATCH {{baseUrl}}/inventory/{{itemId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "quantity": 450,
+  "minStockLevel": 150
+}
+
+### Adjust Stock
+PATCH {{baseUrl}}/inventory/{{itemId}}/adjust
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "delta": -50
+}
+
+###
+### Alerts Management
+###
+
+### Get All Alerts
+GET {{baseUrl}}/alerts
+Authorization: Bearer {{authToken}}
+
+### Get Unread Alerts
+GET {{baseUrl}}/alerts/unread
+Authorization: Bearer {{authToken}}
+
+### Create Alert
+POST {{baseUrl}}/alerts
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Frost Warning",
+  "message": "Expected frost tonight. Protect crops.",
+  "type": "weather",
+  "severity": "critical"
+}
+
+### Mark Alert as Read
+PATCH {{baseUrl}}/alerts/{{alertId}}/read
+Authorization: Bearer {{authToken}}
+
+### Acknowledge Alert
+PATCH {{baseUrl}}/alerts/{{alertId}}/acknowledge
+Authorization: Bearer {{authToken}}
+
+###
+### Activities Management
+###
+
+### Get All Activities
+GET {{baseUrl}}/activities
+Authorization: Bearer {{authToken}}
+
+### Create Activity
+POST {{baseUrl}}/activities
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Field Inspection",
+  "type": "inspection",
+  "description": "Regular field inspection",
+  "performedAt": "2024-04-23T14:00:00Z",
+  "fieldId": "{{fieldId}}",
+  "status": "completed"
+}
+
+###
+### Treatments Management
+###
+
+### Get All Treatments
+GET {{baseUrl}}/treatments
+Authorization: Bearer {{authToken}}
+
+### Create Treatment
+POST {{baseUrl}}/treatments
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "productName": "Herbicide XYZ",
+  "type": "herbicide",
+  "quantity": 10,
+  "unit": "liters",
+  "ratePerHa": 2.5,
+  "plannedDate": "2024-04-25",
+  "targetPest": "Weeds",
+  "fieldId": "{{fieldId}}",
+  "status": "planned"
+}
+
+###
+### Schedules Management
+###
+
+### Get All Schedules
+GET {{baseUrl}}/schedules
+Authorization: Bearer {{authToken}}
+
+### Create Schedule
+POST {{baseUrl}}/schedules
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Daily Irrigation",
+  "type": "irrigation",
+  "description": "Automated daily irrigation",
+  "startTime": "2024-04-24T06:00:00Z",
+  "recurrence": "daily",
+  "isActive": true,
+  "zoneId": "{{zoneId}}"
+}
+
+###
+### Analytics
+###
+
+### Get Dashboard Stats
+GET {{baseUrl}}/analytics/dashboard
+Authorization: Bearer {{authToken}}
+
+### Get Irrigation Stats
+GET {{baseUrl}}/analytics/irrigation?from=2024-01-01&to=2024-12-31
+Authorization: Bearer {{authToken}}
+
+### Get Fertilizer Stats
+GET {{baseUrl}}/analytics/fertilizer?from=2024-01-01&to=2024-12-31
+Authorization: Bearer {{authToken}}
