@@ -1,0 +1,32 @@
+name: flutter_application_1
+description: "تطبيق إدارة المزرعة الذكي"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  google_fonts: ^6.2.1
+  # Networking
+  http: ^1.2.2
+  # Image picking & camera
+  image_picker: ^1.1.2
+  # Local storage for settings
+  shared_preferences: ^2.3.3
+  # State management
+  provider: ^6.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - lib/compenent/images/
+    - lib/compenent/icons/
