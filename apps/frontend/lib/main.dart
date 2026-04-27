@@ -7,7 +7,11 @@ import 'services/api_client.dart';
 import 'providers/dashboard_provider.dart';
 import 'providers/analysis_provider.dart';
 import 'providers/settings_provider.dart';
+import 'providers/auth_provider.dart';
+import 'providers/inventory_provider.dart';
+import 'providers/analytics_provider.dart';
 import 'widgets/main_scaffold.dart';
+import 'pages/login_page.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,18 +29,20 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Single shared ApiClient for the whole app
     final apiClient = ApiClient();
 
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider<ApiClient>.value(value: apiClient),
+        ChangeNotifierProvider(create: (_) => AuthProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => DashboardProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => AnalysisProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => SettingsProvider(apiClient)),
+        ChangeNotifierProvider(create: (_) => InventoryProvider(apiClient)),
+        ChangeNotifierProvider(create: (_) => AnalyticsProvider(apiClient)),
       ],
       child: Consumer<SettingsProvider>(
         builder: (context, settingsProvider, _) {
-          // Load settings on first build
           WidgetsBinding.instance.addPostFrameCallback((_) {
             settingsProvider.load();
           });
@@ -77,10 +83,25 @@ class MyApp extends StatelessWidget {
                         : AppColors.border),
               ),
             ),
-            home: const MainScaffold(),
+            home: const _AuthGate(),
           );
         },
       ),
+    );
+  }
+}
+
+/// Switches between LoginPage and MainScaffold based on auth state.
+class _AuthGate extends StatelessWidget {
+  const _AuthGate();
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AuthProvider>(
+      builder: (context, auth, _) {
+        if (auth.isAuthenticated) return const MainScaffold();
+        return const LoginPage();
+      },
     );
   }
 }

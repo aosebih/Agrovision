@@ -20,7 +20,6 @@ class DashboardProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   bool get isLoading => _state == LoadState.loading;
 
-  /// Load dashboard + crops in parallel
   Future<void> load({bool silent = false}) async {
     if (!silent) {
       _state = LoadState.loading;
@@ -29,16 +28,24 @@ class DashboardProvider extends ChangeNotifier {
     }
 
     try {
-      // Fire both requests concurrently
       final results = await Future.wait([
         _api.get('/dashboard'),
         _api.get('/dashboard/crops'),
       ]);
 
-      _data = DashboardData.fromJson(results[0]['data'] as Map<String, dynamic>);
-      _crops = (results[1]['data'] as List)
-          .map((e) => RemoteCrop.fromJson(e as Map<String, dynamic>))
-          .toList();
+      // Handle both wrapped {data: ...} and direct response
+      final dashRaw = results[0];
+      final dashMap = dashRaw is Map && dashRaw.containsKey('data')
+          ? dashRaw['data'] as Map<String, dynamic>
+          : dashRaw as Map<String, dynamic>;
+      _data = DashboardData.fromJson(dashMap);
+
+      final cropsRaw = results[1];
+      final cropsList = cropsRaw is Map && cropsRaw.containsKey('data')
+          ? cropsRaw['data'] as List
+          : cropsRaw as List;
+      _crops = cropsList.map((e) => RemoteCrop.fromJson(e as Map<String, dynamic>)).toList();
+
       _state = LoadState.loaded;
       _errorMessage = null;
     } on ApiException catch (e) {

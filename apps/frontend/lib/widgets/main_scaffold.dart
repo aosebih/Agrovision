@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../temes/app_colors.dart';
 import '../temes/app_text_styles.dart';
 import '../pages/home_page.dart';
-import '../pages/fertilizers_page.dart';
+import '../pages/inventory_page.dart';
 import '../pages/analytics_page.dart';
 import '../pages/settings_page.dart';
 import '../pages/camera_page.dart';
@@ -14,43 +14,43 @@ class MainScaffold extends StatefulWidget {
 }
 
 class _MainScaffoldState extends State<MainScaffold> {
-  int _currentIndex = 0; // 0=Home 1=Fertilizers 2=camera(push) 3=Analytics 4=Settings
+  // 0=Home 1=Inventory 2=camera(push) 3=Analytics 4=Settings
+  int _currentIndex = 0;
 
   void _onTabTapped(int index) {
     if (index == 2) {
-      // Camera is a full push route, not a tab
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const CameraPage()));
+      Navigator.push(
+          context, MaterialPageRoute(builder: (_) => const CameraPage()));
       return;
     }
     setState(() => _currentIndex = index);
   }
 
-  // Tab index → page index (skip slot 2)
+  // Tab index → page index (slot 2 is camera push, not a tab)
   int get _pageIndex => _currentIndex > 2 ? _currentIndex - 1 : _currentIndex;
 
   @override
   Widget build(BuildContext context) => Directionality(
-    textDirection: TextDirection.rtl,
-    child: Scaffold(
-      backgroundColor: AppColors.background,
-      body: IndexedStack(
-        index: _pageIndex,
-        children: const [
-          HomePage(),
-          FertilizersPage(),
-          AnalyticsPage(),
-          SettingsPage(),
-        ],
-      ),
-      bottomNavigationBar: _BottomNavBar(
-        currentIndex: _currentIndex,
-        onTap: _onTabTapped,
-      ),
-    ),
-  );
+        textDirection: TextDirection.rtl,
+        child: Scaffold(
+          backgroundColor: AppColors.background,
+          body: IndexedStack(
+            index: _pageIndex,
+            children: const [
+              HomePage(),
+              InventoryPage(), // ← now real inventory tab
+              AnalyticsPage(),
+              SettingsPage(),
+            ],
+          ),
+          bottomNavigationBar: _BottomNavBar(
+            currentIndex: _currentIndex,
+            onTap: _onTabTapped,
+          ),
+        ),
+      );
 }
 
-// ── Bottom Nav ─────────────────────────────────────────────────────────────────
 class _BottomNavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -58,44 +58,70 @@ class _BottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    decoration: const BoxDecoration(
-      color: AppColors.surface,
-      border: Border(top: BorderSide(color: AppColors.border)),
-      boxShadow: [BoxShadow(color: Color(0x14000000), blurRadius: 20, offset: Offset(0, -4))],
-    ),
-    child: SafeArea(
-      child: SizedBox(
-        height: 64,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _NavItem(icon: Icons.settings_outlined, activeIcon: Icons.settings_rounded,
-                label: 'الإعدادات', isActive: currentIndex == 4, onTap: () => onTap(4)),
-            _NavItem(icon: Icons.bar_chart_outlined, activeIcon: Icons.bar_chart_rounded,
-                label: 'التحليلات', isActive: currentIndex == 3, onTap: () => onTap(3)),
-            // Camera FAB — pushes CameraPage
-            GestureDetector(
-              onTap: () => onTap(2),
-              child: Container(
-                width: 56, height: 56,
-                margin: const EdgeInsets.only(bottom: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  shape: BoxShape.circle,
-                  boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.4), blurRadius: 14, offset: const Offset(0, 4))],
-                ),
-                child: const Icon(Icons.camera_alt_rounded, color: Colors.white, size: 26),
-              ),
-            ),
-            _NavItem(icon: Icons.eco_outlined, activeIcon: Icons.eco_rounded,
-                label: 'الأسمدة', isActive: currentIndex == 1, onTap: () => onTap(1)),
-            _NavItem(icon: Icons.home_outlined, activeIcon: Icons.home_rounded,
-                label: 'الرئيسية', isActive: currentIndex == 0, onTap: () => onTap(0)),
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          border: Border(top: BorderSide(color: AppColors.border)),
+          boxShadow: [
+            BoxShadow(
+                color: Color(0x14000000), blurRadius: 20, offset: Offset(0, -4))
           ],
         ),
-      ),
-    ),
-  );
+        child: SafeArea(
+          child: SizedBox(
+            height: 64,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _NavItem(
+                    icon: Icons.settings_outlined,
+                    activeIcon: Icons.settings_rounded,
+                    label: 'الإعدادات',
+                    isActive: currentIndex == 4,
+                    onTap: () => onTap(4)),
+                _NavItem(
+                    icon: Icons.bar_chart_outlined,
+                    activeIcon: Icons.bar_chart_rounded,
+                    label: 'التحليلات',
+                    isActive: currentIndex == 3,
+                    onTap: () => onTap(3)),
+                // Camera FAB
+                GestureDetector(
+                  onTap: () => onTap(2),
+                  child: Container(
+                    width: 56,
+                    height: 56,
+                    margin: const EdgeInsets.only(bottom: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.4),
+                            blurRadius: 14,
+                            offset: const Offset(0, 4))
+                      ],
+                    ),
+                    child: const Icon(Icons.camera_alt_rounded,
+                        color: Colors.white, size: 26),
+                  ),
+                ),
+                _NavItem(
+                    icon: Icons.inventory_2_outlined,
+                    activeIcon: Icons.inventory_2_rounded,
+                    label: 'المخزون',
+                    isActive: currentIndex == 1,
+                    onTap: () => onTap(1)),
+                _NavItem(
+                    icon: Icons.home_outlined,
+                    activeIcon: Icons.home_rounded,
+                    label: 'الرئيسية',
+                    isActive: currentIndex == 0,
+                    onTap: () => onTap(0)),
+              ],
+            ),
+          ),
+        ),
+      );
 }
 
 class _NavItem extends StatelessWidget {
@@ -103,28 +129,39 @@ class _NavItem extends StatelessWidget {
   final String label;
   final bool isActive;
   final VoidCallback onTap;
-  const _NavItem({required this.icon, required this.activeIcon, required this.label, required this.isActive, required this.onTap});
+  const _NavItem(
+      {required this.icon,
+      required this.activeIcon,
+      required this.label,
+      required this.isActive,
+      required this.onTap});
 
   @override
   Widget build(BuildContext context) => GestureDetector(
-    onTap: onTap,
-    behavior: HitTestBehavior.opaque,
-    child: SizedBox(
-      width: 64,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 180),
-            child: Icon(isActive ? activeIcon : icon, key: ValueKey(isActive), size: 22,
-                color: isActive ? AppColors.primary : AppColors.navInactive),
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: SizedBox(
+          width: 64,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                child: Icon(isActive ? activeIcon : icon,
+                    key: ValueKey(isActive),
+                    size: 22,
+                    color:
+                        isActive ? AppColors.primary : AppColors.navInactive),
+              ),
+              const SizedBox(height: 3),
+              Text(label,
+                  style: AppTextStyles.caption.copyWith(
+                      color:
+                          isActive ? AppColors.primary : AppColors.navInactive,
+                      fontWeight:
+                          isActive ? FontWeight.w600 : FontWeight.w400)),
+            ],
           ),
-          const SizedBox(height: 3),
-          Text(label, style: AppTextStyles.caption.copyWith(
-              color: isActive ? AppColors.primary : AppColors.navInactive,
-              fontWeight: isActive ? FontWeight.w600 : FontWeight.w400)),
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 }

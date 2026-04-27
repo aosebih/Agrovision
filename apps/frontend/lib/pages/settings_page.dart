@@ -4,6 +4,7 @@ import '../temes/app_colors.dart';
 import '../temes/app_text_styles.dart';
 import '../widgets/app_widgets.dart';
 import '../providers/settings_provider.dart';
+import '../providers/auth_provider.dart';
 import 'profile_page.dart';
 import 'alerts_page.dart';
 
@@ -122,7 +123,8 @@ class SettingsPage extends StatelessWidget {
                       const SizedBox(height: 8),
                       _navTile(Icons.logout_rounded, AppColors.error,
                           const Color(0xFFFEF2F2), 'تسجيل الخروج',
-                          titleColor: AppColors.error),
+                          titleColor: AppColors.error,
+                          onTap: () => context.read<AuthProvider>().logout()),
                       const SizedBox(height: 100),
                     ]),
               );

@@ -1,10 +1,10 @@
 /// Central HTTP client for all backend communication.
-/// Change [baseUrl] to point to your NestJS server.
 library;
 
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 class ApiException implements Exception {
@@ -15,42 +15,51 @@ class ApiException implements Exception {
   String toString() => 'ApiException($statusCode): $message';
 }
 
-class ApiClient {
-  // ── Configuration ──────────────────────────────────────────────────────────
-  // Change this to your server IP when running on a real device.
-  // For Android emulator use: http://10.0.2.2:3000/api/v1
-  // For iOS simulator use:    http://localhost:3000/api/v1
-  // For physical device use:  http://<YOUR_MACHINE_IP>:3000/api/v1
+class ApiClient extends ChangeNotifier {
   static const String baseUrl = 'http://10.0.2.2:3000/api/v1';
   static const Duration _timeout = Duration(seconds: 30);
 
   final http.Client _client;
+  String? _token;
+
   ApiClient({http.Client? client}) : _client = client ?? http.Client();
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
+  String? get token => _token;
+  bool get isAuthenticated => _token != null;
 
-  Map<String, String> get _headers => {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      };
+  void setToken(String token) {
+    _token = token;
+    notifyListeners();
+  }
 
-  Map<String, dynamic> _parseResponse(http.Response res) {
-    final body = json.decode(res.body) as Map<String, dynamic>;
+  void clearToken() {
+    _token = null;
+    notifyListeners();
+  }
+
+  Map<String, String> get _headers {
+    final h = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+    if (_token != null) h['Authorization'] = 'Bearer $_token';
+    return h;
+  }
+
+  dynamic _parseResponse(http.Response res) {
+    final body = json.decode(res.body);
     if (res.statusCode >= 400) {
-      throw ApiException(
-        statusCode: res.statusCode,
-        message: body['error']?.toString() ?? 'Unknown error',
-      );
+      final msg = body is Map
+          ? (body['message']?.toString() ?? body['error']?.toString() ?? 'Unknown error')
+          : 'Unknown error';
+      throw ApiException(statusCode: res.statusCode, message: msg);
     }
     return body;
   }
 
-  // ── GET ────────────────────────────────────────────────────────────────────
-  Future<Map<String, dynamic>> get(String path) async {
+  Future<dynamic> get(String path) async {
     try {
-      final res = await _client
-          .get(Uri.parse('$baseUrl$path'), headers: _headers)
-          .timeout(_timeout);
+      final res = await _client.get(Uri.parse('$baseUrl$path'), headers: _headers).timeout(_timeout);
       return _parseResponse(res);
     } on SocketException {
       throw const ApiException(statusCode: 0, message: 'لا يوجد اتصال بالشبكة');
@@ -59,14 +68,9 @@ class ApiClient {
     }
   }
 
-  // ── PUT ────────────────────────────────────────────────────────────────────
-  Future<Map<String, dynamic>> put(
-      String path, Map<String, dynamic> body) async {
+  Future<dynamic> post(String path, Map<String, dynamic> body) async {
     try {
-      final res = await _client
-          .put(Uri.parse('$baseUrl$path'),
-              headers: _headers, body: json.encode(body))
-          .timeout(_timeout);
+      final res = await _client.post(Uri.parse('$baseUrl$path'), headers: _headers, body: json.encode(body)).timeout(_timeout);
       return _parseResponse(res);
     } on SocketException {
       throw const ApiException(statusCode: 0, message: 'لا يوجد اتصال بالشبكة');
@@ -75,26 +79,46 @@ class ApiClient {
     }
   }
 
-  // ── Multipart (image upload) ───────────────────────────────────────────────
-  Future<Map<String, dynamic>> postMultipart(
-    String path,
-    File imageFile, {
-    Map<String, String>? fields,
-  }) async {
+  Future<dynamic> patch(String path, Map<String, dynamic> body) async {
     try {
-      final request =
-          http.MultipartRequest('POST', Uri.parse('$baseUrl$path'));
+      final res = await _client.patch(Uri.parse('$baseUrl$path'), headers: _headers, body: json.encode(body)).timeout(_timeout);
+      return _parseResponse(res);
+    } on SocketException {
+      throw const ApiException(statusCode: 0, message: 'لا يوجد اتصال بالشبكة');
+    } on TimeoutException {
+      throw const ApiException(statusCode: 408, message: 'انتهت مهلة الاتصال');
+    }
+  }
 
-      request.files.add(await http.MultipartFile.fromPath(
-        'image',
-        imageFile.path,
-        // filename hint for the server
-      ));
+  Future<dynamic> put(String path, Map<String, dynamic> body) async {
+    try {
+      final res = await _client.put(Uri.parse('$baseUrl$path'), headers: _headers, body: json.encode(body)).timeout(_timeout);
+      return _parseResponse(res);
+    } on SocketException {
+      throw const ApiException(statusCode: 0, message: 'لا يوجد اتصال بالشبكة');
+    } on TimeoutException {
+      throw const ApiException(statusCode: 408, message: 'انتهت مهلة الاتصال');
+    }
+  }
 
+  Future<dynamic> delete(String path) async {
+    try {
+      final res = await _client.delete(Uri.parse('$baseUrl$path'), headers: _headers).timeout(_timeout);
+      return _parseResponse(res);
+    } on SocketException {
+      throw const ApiException(statusCode: 0, message: 'لا يوجد اتصال بالشبكة');
+    } on TimeoutException {
+      throw const ApiException(statusCode: 408, message: 'انتهت مهلة الاتصال');
+    }
+  }
+
+  Future<dynamic> postMultipart(String path, File imageFile, {Map<String, String>? fields}) async {
+    try {
+      final request = http.MultipartRequest('POST', Uri.parse('$baseUrl$path'));
+      if (_token != null) request.headers['Authorization'] = 'Bearer $_token';
+      request.files.add(await http.MultipartFile.fromPath('image', imageFile.path));
       if (fields != null) request.fields.addAll(fields);
-
-      final streamedResponse =
-          await request.send().timeout(_timeout);
+      final streamedResponse = await request.send().timeout(_timeout);
       final res = await http.Response.fromStream(streamedResponse);
       return _parseResponse(res);
     } on SocketException {
@@ -104,5 +128,9 @@ class ApiClient {
     }
   }
 
-  void dispose() => _client.close();
+  @override
+  void dispose() {
+    _client.close();
+    super.dispose();
+  }
 }
