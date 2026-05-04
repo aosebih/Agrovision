@@ -5,8 +5,9 @@ export class CreateCropDto {
   @IsString()
   name: string;
 
+  @IsOptional()
   @IsUUID()
-  fieldId: string;
+  fieldId?: string;
 
   @IsOptional()
   @IsString()

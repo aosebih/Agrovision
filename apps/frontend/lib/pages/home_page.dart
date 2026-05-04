@@ -5,7 +5,6 @@ import '../temes/app_text_styles.dart';
 import '../widgets/app_widgets.dart';
 import '../providers/dashboard_provider.dart';
 import '../models/remote/dashboard_response.dart';
-import 'inventory_detail_page.dart';
 import 'dart:math' as math;
 
 class HomePage extends StatefulWidget {
@@ -18,7 +17,6 @@ class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late AnimationController _ctrl;
   late Animation<double> _anim;
-  int _selDay = 0;
   double _lastHealth = 0;
 
   @override
@@ -32,7 +30,6 @@ class _HomePageState extends State<HomePage>
     _anim = Tween<double>(begin: 0.0, end: 0.0)
         .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
 
-    // Load dashboard on first build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<DashboardProvider>().load();
     });
@@ -69,7 +66,7 @@ class _HomePageState extends State<HomePage>
             }
             final data = provider.data;
             if (data != null) {
-              _animateTo(data.cropHealth.overallHealthPercent / 100.0);
+              _animateTo((data.averageCropHealth / 100.0).clamp(0.0, 1.0));
             }
             return RefreshIndicator(
               color: AppColors.primary,
@@ -81,13 +78,13 @@ class _HomePageState extends State<HomePage>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _header(data),
+                    _header(),
                     const SizedBox(height: 20),
                     _healthCard(data),
                     const SizedBox(height: 14),
-                    if (data != null) _weatherCard(data.weather),
+                    if (data != null) _statsCard(data),
                     const SizedBox(height: 14),
-                    if (data != null) _storageCard(context, data.storage),
+                    if (data != null) _alertsInventoryCard(data),
                     const SizedBox(height: 100),
                   ],
                 ),
@@ -121,16 +118,17 @@ class _HomePageState extends State<HomePage>
         ),
       );
 
-  Widget _header(DashboardData? data) => Row(
+  Widget _header() => Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _iconBtn(Icons.notifications_outlined, badge: true),
+          _iconBtn(Icons.notifications_outlined),
           Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-            Text('الإثنين، 24 أكتوبر', style: AppTextStyles.caption),
             Text(
-              data != null
-                  ? 'صباح الخير، ${data.cropHealth.statusLabel}'
-                  : 'صباح الخير',
+              _todayLabel(),
+              style: AppTextStyles.caption,
+            ),
+            Text(
+              'مرحباً بك',
               style: AppTextStyles.headlineMedium,
             ),
           ]),
@@ -147,25 +145,28 @@ class _HomePageState extends State<HomePage>
         ],
       );
 
-  Widget _iconBtn(IconData icon, {bool badge = false}) => Container(
+  String _todayLabel() {
+    final now = DateTime.now();
+    const days = [
+      'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس',
+      'الجمعة', 'السبت', 'الأحد'
+    ];
+    const months = [
+      'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+      'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+    ];
+    return '${days[now.weekday - 1]}، ${now.day} ${months[now.month - 1]}';
+  }
+
+  Widget _iconBtn(IconData icon) => Container(
         width: 44,
         height: 44,
         decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppColors.border)),
-        child: Stack(children: [
-          Center(child: Icon(icon, size: 22, color: AppColors.textSecondary)),
-          if (badge)
-            Positioned(
-                top: 9,
-                right: 9,
-                child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                        color: AppColors.error, shape: BoxShape.circle))),
-        ]),
+        child: Center(
+            child: Icon(icon, size: 22, color: AppColors.textSecondary)),
       );
 
   Widget _healthCard(DashboardData? data) => CardShell(
@@ -192,7 +193,13 @@ class _HomePageState extends State<HomePage>
           const SizedBox(height: 16),
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             StatusBadge(
-              label: data?.cropHealth.statusLabel ?? '—',
+              label: data != null
+                  ? (data.averageCropHealth >= 70
+                      ? 'ممتاز'
+                      : data.averageCropHealth >= 40
+                          ? 'متوسط'
+                          : 'يحتاج عناية')
+                  : '—',
               color: AppColors.primaryDark,
               bg: AppColors.primaryLight,
             ),
@@ -201,7 +208,7 @@ class _HomePageState extends State<HomePage>
               const SizedBox(height: 2),
               Text(
                 data != null
-                    ? 'حقول صحية: ${data.cropHealth.healthyCount} من ${data.cropHealth.totalFields}'
+                    ? 'إجمالي المحاصيل: ${data.totalCrops}'
                     : 'جاري التحميل...',
                 style: AppTextStyles.bodySmall,
               ),
@@ -210,163 +217,108 @@ class _HomePageState extends State<HomePage>
         ]),
       );
 
-  Widget _weatherCard(WeatherData weather) {
-    final conditionIcons = {
-      'sunny': Icons.wb_sunny_rounded,
-      'cloudy': Icons.cloud_rounded,
-      'partly_cloudy': Icons.wb_cloudy_rounded,
-      'rainy': Icons.grain_rounded,
-    };
-    final conditionColors = {
-      'sunny': const Color(0xFFF59E0B),
-      'cloudy': const Color(0xFF94A3B8),
-      'partly_cloudy': const Color(0xFF94A3B8),
-      'rainy': AppColors.info,
-    };
-
-    return CardShell(
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Row(children: [
-            const Icon(Icons.location_on_rounded,
-                size: 15, color: AppColors.primary),
-            const SizedBox(width: 4),
-            Text(weather.location, style: AppTextStyles.bodySmall),
-          ]),
-          Text('توقعات الطقس', style: AppTextStyles.headlineMedium),
-        ]),
-        const SizedBox(height: 14),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: List.generate(weather.days.length, (i) {
-            final d = weather.days[i];
-            final sel = i == _selDay;
-            return GestureDetector(
-              onTap: () => setState(() => _selDay = i),
-              child: Column(children: [
-                Text(d.label,
-                    style: AppTextStyles.labelSmall.copyWith(
-                        color:
-                            sel ? AppColors.textPrimary : AppColors.textMuted,
-                        fontWeight: sel ? FontWeight.w600 : FontWeight.w400)),
-                const SizedBox(height: 5),
-                Icon(
-                  conditionIcons[d.condition] ?? Icons.wb_sunny_rounded,
-                  size: 22,
-                  color:
-                      conditionColors[d.condition] ?? const Color(0xFFF59E0B),
-                ),
-                const SizedBox(height: 4),
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  height: 3,
-                  width: sel ? 18 : 0,
-                  decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(2)),
-                ),
-              ]),
-            );
-          }),
+  Widget _statsCard(DashboardData data) => CardShell(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text('ملخص المزرعة', style: AppTextStyles.headlineMedium),
+            const SizedBox(height: 14),
+            Row(children: [
+              Expanded(
+                  child: _StatTile(
+                icon: Icons.eco_rounded,
+                label: 'المحاصيل',
+                value: '${data.totalCrops}',
+                color: AppColors.primary,
+              )),
+              const SizedBox(width: 10),
+              Expanded(
+                  child: _StatTile(
+                icon: Icons.water_drop_rounded,
+                label: 'أحداث الري',
+                value: '${data.totalIrrigationEvents}',
+                color: AppColors.info,
+              )),
+            ]),
+          ],
         ),
-        const SizedBox(height: 14),
-        Row(
-            children: weather.todayHours.map((h) {
-          final first = weather.todayHours.first == h;
-          return Expanded(
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              decoration: BoxDecoration(
-                color: first ? AppColors.primaryLight : AppColors.surfaceAlt,
-                borderRadius: BorderRadius.circular(12),
-                border: first
-                    ? Border.all(
-                        color: AppColors.primary.withValues(alpha: 0.3))
-                    : null,
-              ),
-              child: Column(children: [
-                Text('${h.temp}°م',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color:
-                          first ? AppColors.primaryDark : AppColors.textPrimary,
-                    )),
-                const SizedBox(height: 2),
-                Text(h.time, style: AppTextStyles.caption),
-              ]),
-            ),
-          );
-        }).toList()),
-      ]),
-    );
-  }
+      );
 
-  Widget _storageCard(BuildContext context, List<RemoteStorageItem> storage) {
-    return CardShell(
-      child: Column(children: [
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          // ignore: prefer_const_constructors
-          StatusBadge(
-            label: 'تنبيهات المخزون',
-            color: AppColors.orange,
-            bg: AppColors.orangeLight,
-          ),
-          Row(children: [
-            Text('حالة المخزون', style: AppTextStyles.headlineMedium),
-            const SizedBox(width: 8),
+  Widget _alertsInventoryCard(DashboardData data) => CardShell(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              StatusBadge(
+                label: data.unreadAlerts > 0 ? 'تنبيهات جديدة' : 'لا تنبيهات',
+                color: data.unreadAlerts > 0
+                    ? AppColors.error
+                    : AppColors.primaryDark,
+                bg: data.unreadAlerts > 0
+                    ? const Color(0xFFFEF2F2)
+                    : AppColors.primaryLight,
+              ),
+              Text('التنبيهات والمخزون',
+                  style: AppTextStyles.headlineMedium),
+            ]),
+            const SizedBox(height: 14),
+            Row(children: [
+              Expanded(
+                  child: _StatTile(
+                icon: Icons.notifications_rounded,
+                label: 'تنبيهات غير مقروءة',
+                value: '${data.unreadAlerts}',
+                color: AppColors.error,
+              )),
+              const SizedBox(width: 10),
+              Expanded(
+                  child: _StatTile(
+                icon: Icons.inventory_2_rounded,
+                label: 'مخزون منخفض',
+                value: '${data.lowStockItems}',
+                color: AppColors.orange,
+              )),
+            ]),
+          ],
+        ),
+      );
+}
+
+class _StatTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color color;
+  const _StatTile(
+      {required this.icon,
+      required this.label,
+      required this.value,
+      required this.color});
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+            color: AppColors.surfaceAlt,
+            borderRadius: BorderRadius.circular(14)),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                  color: AppColors.orangeLight,
+                  // ignore: deprecated_member_use
+                  color: color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8)),
-              child: const Icon(Icons.inventory_2_outlined,
-                  size: 17, color: AppColors.orange),
+              child: Icon(icon, size: 18, color: color),
             ),
+            Text(value,
+                style: AppTextStyles.headlineLarge
+                    .copyWith(color: color, fontSize: 22)),
           ]),
+          const SizedBox(height: 6),
+          Text(label, style: AppTextStyles.caption),
         ]),
-        const SizedBox(height: 12),
-        ...storage.take(2).map((item) {
-          final isLow = item.status == 'low';
-          return GestureDetector(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (_) => InventoryDetailPage(item: item)),
-            ),
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: BoxDecoration(
-                  color: AppColors.surfaceAlt,
-                  borderRadius: BorderRadius.circular(14)),
-              child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    StatusBadge(
-                      label: isLow ? 'مخزون منخفض' : 'متوفر',
-                      color: isLow ? AppColors.error : AppColors.primaryDark,
-                      bg: isLow
-                          ? const Color(0xFFFEF2F2)
-                          : AppColors.primaryLight,
-                    ),
-                    Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(item.name,
-                              style: AppTextStyles.bodyMedium
-                                  .copyWith(color: AppColors.textPrimary)),
-                          const SizedBox(height: 2),
-                          Text(item.lastUpdatedLabel,
-                              style: AppTextStyles.caption),
-                        ]),
-                  ]),
-            ),
-          );
-        }),
-      ]),
-    );
-  }
+      );
 }
 
 class _RingPainter extends CustomPainter {

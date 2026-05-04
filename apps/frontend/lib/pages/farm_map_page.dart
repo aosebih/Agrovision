@@ -29,10 +29,10 @@ class _FarmMapPageState extends State<FarmMapPage> {
         Positioned(top: 0, left: 0, right: 0, child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
           child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(10)),
+            Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.white.withOpacity(0.15), borderRadius: BorderRadius.circular(10)),
               child: const Icon(Icons.menu_rounded, size: 20, color: Colors.white)),
             Text('خريطة المزرعة التفاعلية', style: AppTextStyles.titleLarge.copyWith(color: Colors.white)),
-            Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(10)),
+            Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.white.withOpacity(0.15), borderRadius: BorderRadius.circular(10)),
               child: const Icon(Icons.search_rounded, size: 20, color: Colors.white)),
           ]),
         )),
@@ -91,9 +91,9 @@ class _FarmMapPageState extends State<FarmMapPage> {
 class _FieldPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final greenPaint = Paint()..color = AppColors.primary.withValues(alpha: 0.25)..style = PaintingStyle.fill;
+    final greenPaint = Paint()..color = AppColors.primary.withOpacity(0.25)..style = PaintingStyle.fill;
     final greenBorder = Paint()..color = AppColors.primary..style = PaintingStyle.stroke..strokeWidth = 2.5;
-    final yellowPaint = Paint()..color = AppColors.warning.withValues(alpha: 0.2)..style = PaintingStyle.fill;
+    final yellowPaint = Paint()..color = AppColors.warning.withOpacity(0.2)..style = PaintingStyle.fill;
     final yellowBorder = Paint()..color = AppColors.warning..style = PaintingStyle.stroke..strokeWidth = 2.5;
 
     // Field 1 (green)

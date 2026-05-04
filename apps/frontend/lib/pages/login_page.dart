@@ -41,14 +41,21 @@ class _LoginPageState extends State<LoginPage>
   }
 
   void _submit() async {
-    final email = _emailCtrl.text.trim();
-    final pass = _passCtrl.text;
-    setState(() => _emailValid = email.contains('@'));
-    if (!_emailValid || pass.isEmpty) return;
+  final email = _emailCtrl.text.trim();
+  final pass = _passCtrl.text;
+  setState(() => _emailValid = email.contains('@'));
+  if (!_emailValid || pass.isEmpty) return;
 
+  try {
     final auth = context.read<AuthProvider>();
     await auth.login(email: email, password: pass);
+  } catch (e) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('حدث خطأ غير متوقع: $e')),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {

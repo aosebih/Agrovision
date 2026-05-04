@@ -4,6 +4,7 @@ import '../temes/app_colors.dart';
 import '../temes/app_text_styles.dart';
 import '../widgets/app_widgets.dart';
 import '../providers/inventory_provider.dart';
+import 'add_crop_page.dart';
 
 class InventoryPage extends StatefulWidget {
   const InventoryPage({super.key});
@@ -49,9 +50,12 @@ class _InventoryPageState extends State<InventoryPage> {
         child: Scaffold(
           backgroundColor: AppColors.background,
           floatingActionButton: FloatingActionButton(
-            onPressed: () => _showAddDialog(context),
-            backgroundColor: AppColors.primary,
-            child: const Icon(Icons.add_rounded, color: Colors.white),
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AddCropPage()),
+          ),
+          backgroundColor: AppColors.primary,
+          child: const Icon(Icons.add_rounded, color: Colors.white),
           ),
           body: Consumer<InventoryProvider>(
             builder: (context, provider, _) => SafeArea(
@@ -186,7 +190,10 @@ class _InventoryPageState extends State<InventoryPage> {
         Text('لا توجد عناصر في المخزون', style: AppTextStyles.bodySmall),
         const SizedBox(height: 12),
         GreenButton(
-            label: 'إضافة عنصر جديد', onTap: () => _showAddDialog(context)),
+        label: 'إضافة عنصر جديد', onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const AddCropPage()),
+     )),
       ]));
     }
 

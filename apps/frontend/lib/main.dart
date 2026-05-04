@@ -13,24 +13,28 @@ import 'providers/analytics_provider.dart';
 import 'widgets/main_scaffold.dart';
 import 'pages/login_page.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.dark,
     systemNavigationBarColor: AppColors.surface,
     systemNavigationBarIconBrightness: Brightness.dark,
   ));
-  runApp(const MyApp());
+
+  final apiClient = ApiClient();
+  await apiClient.ready;
+
+  runApp(MyApp(apiClient: apiClient));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final ApiClient apiClient;
+  const MyApp({super.key, required this.apiClient});
 
   @override
   Widget build(BuildContext context) {
-    final apiClient = ApiClient();
-
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<ApiClient>.value(value: apiClient),
@@ -41,57 +45,74 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => InventoryProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => AnalyticsProvider(apiClient)),
       ],
-      child: Consumer<SettingsProvider>(
-        builder: (context, settingsProvider, _) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            settingsProvider.load();
-          });
-
-          return MaterialApp(
-            title: 'زراعتي',
-            debugShowCheckedModeBanner: false,
-            locale: const Locale('ar'),
-            builder: (context, child) =>
-                Directionality(textDirection: TextDirection.rtl, child: child!),
-            theme: ThemeData(
-              useMaterial3: true,
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: AppColors.primary,
-                primary: AppColors.primary,
-                surface: AppColors.surface,
-              ),
-              scaffoldBackgroundColor: AppColors.background,
-              textTheme: GoogleFonts.ibmPlexSansArabicTextTheme(
-                  Theme.of(context).textTheme),
-              appBarTheme: const AppBarTheme(
-                backgroundColor: AppColors.surface,
-                elevation: 0,
-                scrolledUnderElevation: 0,
-                systemOverlayStyle: SystemUiOverlayStyle(
-                  statusBarColor: Colors.transparent,
-                  statusBarIconBrightness: Brightness.dark,
-                ),
-              ),
-              switchTheme: SwitchThemeData(
-                thumbColor: WidgetStateProperty.resolveWith((s) =>
-                    s.contains(WidgetState.selected)
-                        ? Colors.white
-                        : AppColors.textMuted),
-                trackColor: WidgetStateProperty.resolveWith((s) =>
-                    s.contains(WidgetState.selected)
-                        ? AppColors.primary
-                        : AppColors.border),
-              ),
-            ),
-            home: const _AuthGate(),
-          );
-        },
-      ),
+      child: const _AppRoot(),
     );
   }
 }
 
-/// Switches between LoginPage and MainScaffold based on auth state.
+// Stateful so we can call SettingsProvider.load() exactly once in initState,
+// avoiding the rebuild loop that occurred when addPostFrameCallback was placed
+// inside the Consumer builder (which re-registered the callback on every build).
+class _AppRoot extends StatefulWidget {
+  const _AppRoot();
+
+  @override
+  State<_AppRoot> createState() => _AppRootState();
+}
+
+class _AppRootState extends State<_AppRoot> {
+  @override
+  void initState() {
+    super.initState();
+    // Safe: runs after the first frame, never during a build.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<SettingsProvider>().load();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'زراعتي',
+      debugShowCheckedModeBanner: false,
+      locale: const Locale('ar'),
+      builder: (context, child) =>
+          Directionality(textDirection: TextDirection.rtl, child: child!),
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.primary,
+          primary: AppColors.primary,
+          surface: AppColors.surface,
+        ),
+        scaffoldBackgroundColor: AppColors.background,
+        textTheme: GoogleFonts.ibmPlexSansArabicTextTheme(
+            Theme.of(context).textTheme),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: AppColors.surface,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          systemOverlayStyle: SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: Brightness.dark,
+          ),
+        ),
+        switchTheme: SwitchThemeData(
+          thumbColor: WidgetStateProperty.resolveWith((s) =>
+              s.contains(WidgetState.selected)
+                  ? Colors.white
+                  : AppColors.textMuted),
+          trackColor: WidgetStateProperty.resolveWith((s) =>
+              s.contains(WidgetState.selected)
+                  ? AppColors.primary
+                  : AppColors.border),
+        ),
+      ),
+      home: const _AuthGate(),
+    );
+  }
+}
+
 class _AuthGate extends StatelessWidget {
   const _AuthGate();
 

@@ -215,7 +215,7 @@ class FieldAnalysisPage extends StatelessWidget {
               width: 30,
               height: 30,
               decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
+                  color: color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8)),
               child: Icon(icon, size: 15, color: color))
         ]),
@@ -298,7 +298,7 @@ class _LinePainter extends CustomPainter {
         fill,
         Paint()
           ..shader = LinearGradient(colors: [
-            AppColors.primary.withValues(alpha: 0.25),
+            AppColors.primary.withOpacity(0.25),
             Colors.transparent
           ], begin: Alignment.topCenter, end: Alignment.bottomCenter)
               .createShader(Rect.fromLTWH(0, 0, size.width, size.height)));

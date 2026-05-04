@@ -28,7 +28,7 @@ class AuthProvider extends ChangeNotifier {
       });
       final token = res['access_token'] as String?;
       if (token == null) throw const ApiException(statusCode: 401, message: 'لم يتم استلام رمز المصادقة');
-      _api.setToken(token);
+      await _api.setToken(token);
       _state = AuthState.authenticated;
       notifyListeners();
       return true;
@@ -76,10 +76,10 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  void logout() {
-    _api.clearToken();
-    _user = null;
-    _state = AuthState.idle;
-    notifyListeners();
-  }
+  Future<void> logout() async {
+  await _api.clearToken();
+  _user = null;
+  _state = AuthState.idle;
+  notifyListeners();
+}
 }

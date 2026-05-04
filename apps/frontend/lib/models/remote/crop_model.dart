@@ -1,51 +1,80 @@
-/// Remote model for GET /api/v1/dashboard/crops
 library;
 
 class RemoteCrop {
   final String id;
   final String name;
-  final String field;
-  final String variety;
-  final double health;
-  final String statusLabel;
-  final double humidity;
-  final double temp;
-  final double ndvi;
-  final int growthDay;
-  final String lastScanned;
+  final String? variety;
+  final String status;
+  final String? growthStage;
+  final String? plantedDate;
+  final String? expectedHarvestDate;
+  final double? healthScore;
+  final String? notes;
+  final String? fieldId;
+  final Map<String, dynamic>? field;
 
   const RemoteCrop({
     required this.id,
     required this.name,
-    required this.field,
-    required this.variety,
-    required this.health,
-    required this.statusLabel,
-    required this.humidity,
-    required this.temp,
-    required this.ndvi,
-    required this.growthDay,
-    required this.lastScanned,
+    this.variety,
+    required this.status,
+    this.growthStage,
+    this.plantedDate,
+    this.expectedHarvestDate,
+    this.healthScore,
+    this.notes,
+    this.fieldId,
+    this.field,
   });
 
   factory RemoteCrop.fromJson(Map<String, dynamic> j) => RemoteCrop(
         id: j['id'] as String,
         name: j['name'] as String,
-        field: j['field'] as String,
-        variety: j['variety'] as String,
-        health: (j['health'] as num).toDouble(),
-        statusLabel: j['statusLabel'] as String,
-        humidity: (j['humidity'] as num).toDouble(),
-        temp: (j['temp'] as num).toDouble(),
-        ndvi: (j['ndvi'] as num).toDouble(),
-        growthDay: (j['growthDay'] as num).toInt(),
-        lastScanned: j['lastScanned'] as String,
+        variety: j['variety'] as String?,
+        status: j['status'] as String? ?? 'planted',
+        growthStage: j['growthStage'] as String?,
+        plantedDate: j['plantedDate'] as String?,
+        expectedHarvestDate: j['expectedHarvestDate'] as String?,
+        healthScore: j['healthScore'] != null
+            ? (j['healthScore'] as num).toDouble()
+            : null,
+        notes: j['notes'] as String?,
+        fieldId: j['fieldId'] as String?,
+        field: j['field'] as Map<String, dynamic>?,
       );
 
-  /// Convenience: status color key based on health score
+  /// Status color key
   String get statusKey {
-    if (health >= 0.80) return 'healthy';
-    if (health >= 0.55) return 'warning';
-    return 'critical';
+    if (healthScore != null) {
+      if (healthScore! >= 80) return 'healthy';
+      if (healthScore! >= 55) return 'warning';
+      return 'critical';
+    }
+    switch (status) {
+      case 'growing':
+      case 'planted':
+        return 'healthy';
+      case 'ready_to_harvest':
+        return 'warning';
+      default:
+        return 'healthy';
+    }
   }
+
+  String get statusLabel {
+    switch (status) {
+      case 'planted':
+        return 'مزروع';
+      case 'growing':
+        return 'ينمو';
+      case 'ready_to_harvest':
+        return 'جاهز للحصاد';
+      case 'harvested':
+        return 'تم الحصاد';
+      default:
+        return status;
+    }
+  }
+
+  String get fieldName => field?['name'] as String? ?? '-';
 }

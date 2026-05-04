@@ -181,7 +181,7 @@ class _FertilizersPageState extends State<FertilizersPage>
             decoration: BoxDecoration(
                 color: bg,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: color.withValues(alpha: 0.2))),
+                border: Border.all(color: color.withOpacity(0.2))),
             child: Row(children: [
               Icon(icon, color: color, size: 22),
               const SizedBox(width: 10),

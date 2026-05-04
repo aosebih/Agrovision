@@ -29,8 +29,8 @@ class DashboardProvider extends ChangeNotifier {
 
     try {
       final results = await Future.wait([
-        _api.get('/dashboard'),
-        _api.get('/dashboard/crops'),
+        _api.get('/analytics/dashboard'),
+        _api.get('/crops'),
       ]);
 
       // Handle both wrapped {data: ...} and direct response

@@ -27,14 +27,14 @@ export class AnalyticsService {
       this.invRepo
         .createQueryBuilder('i')
         .where('i.user_id = :userId', { userId })
-        .andWhere('i.min_stock_level IS NOT NULL')
-        .andWhere('i.quantity <= i.min_stock_level')
+        .andWhere('i."minStockLevel" IS NOT NULL')
+        .andWhere('i.quantity <= i."minStockLevel"')
         .getCount(),
     ]);
 
     const cropHealthAvg = await this.cropRepo
       .createQueryBuilder('c')
-      .select('AVG(c.health_score)', 'avg')
+      .select('AVG(c."healthScore")', 'avg')
       .where('c.user_id = :userId', { userId })
       .getRawOne();
 

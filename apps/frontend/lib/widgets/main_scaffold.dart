@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../temes/app_colors.dart';
 import '../temes/app_text_styles.dart';
 import '../pages/home_page.dart';
-import '../pages/inventory_page.dart';
+import '../pages/crops_page.dart';
 import '../pages/analytics_page.dart';
 import '../pages/settings_page.dart';
 import '../pages/camera_page.dart';
@@ -14,7 +14,7 @@ class MainScaffold extends StatefulWidget {
 }
 
 class _MainScaffoldState extends State<MainScaffold> {
-  // 0=Home 1=Inventory 2=camera(push) 3=Analytics 4=Settings
+  // 0=Home 1=Crops 2=camera(push) 3=Analytics 4=Settings
   int _currentIndex = 0;
 
   void _onTabTapped(int index) {
@@ -38,7 +38,7 @@ class _MainScaffoldState extends State<MainScaffold> {
             index: _pageIndex,
             children: const [
               HomePage(),
-              InventoryPage(), // ← now real inventory tab
+              CropsPage(),
               AnalyticsPage(),
               SettingsPage(),
             ],
@@ -96,7 +96,8 @@ class _BottomNavBar extends StatelessWidget {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.4),
+                            // ignore: deprecated_member_use
+                            color: AppColors.primary.withOpacity(0.4),
                             blurRadius: 14,
                             offset: const Offset(0, 4))
                       ],
@@ -106,9 +107,9 @@ class _BottomNavBar extends StatelessWidget {
                   ),
                 ),
                 _NavItem(
-                    icon: Icons.inventory_2_outlined,
-                    activeIcon: Icons.inventory_2_rounded,
-                    label: 'المخزون',
+                    icon: Icons.eco_outlined,
+                    activeIcon: Icons.eco_rounded,
+                    label: 'محاصيلي',
                     isActive: currentIndex == 1,
                     onTap: () => onTap(1)),
                 _NavItem(

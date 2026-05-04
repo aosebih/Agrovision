@@ -60,7 +60,6 @@ class _AlertsPageState extends State<AlertsPage> {
       return const Center(child: CircularProgressIndicator(color: AppColors.primary));
     }
     final data = provider.data;
-    // Build alerts from storage low-stock items + crop warnings
     final alerts = _buildAlerts(data);
     if (alerts.isEmpty) {
       return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -86,39 +85,48 @@ class _AlertsPageState extends State<AlertsPage> {
     final alerts = <Map<String, dynamic>>[];
     if (data == null) return alerts;
 
-    // Low-stock storage items
-    for (final item in data.storage.where((s) => s.status == 'low')) {
+    if (data.unreadAlerts > 0) {
+      alerts.add({
+        'title': 'تنبيهات غير مقروءة',
+        'desc': 'لديك ${data.unreadAlerts} تنبيه غير مقروء. تحقق من التفاصيل.',
+        'type': 'تحذير',
+        'time': 'الآن',
+        'icon': Icons.notifications_active_rounded,
+        'critical': false,
+      });
+    }
+
+    if (data.lowStockItems > 0) {
       alerts.add({
         'title': 'انخفاض المخزون',
-        'desc': '${item.name}: ${item.currentKg.toInt()}/${item.capacityKg.toInt()} ${item.unit} متبقي. يلزم إعادة التعبئة.',
+        'desc': '${data.lowStockItems} عناصر في المخزون وصلت للحد الأدنى وتحتاج إعادة تعبئة.',
         'type': 'تحذير',
-        'time': item.lastUpdatedLabel,
+        'time': 'الآن',
         'icon': Icons.inventory_2_outlined,
         'critical': false,
       });
     }
 
-    // Crop health warnings
-    if (data.cropHealth.warningCount > 0) {
+    if (data.averageCropHealth < 40 && data.totalCrops > 0) {
+      alerts.add({
+        'title': 'تنبيه حرج',
+        'desc': 'متوسط صحة المحاصيل منخفض جداً (${data.averageCropHealth.toStringAsFixed(0)}%). يلزم تدخل فوري.',
+        'type': 'حرجة',
+        'time': 'الآن',
+        'icon': Icons.emergency_rounded,
+        'critical': true,
+      });
+    } else if (data.averageCropHealth < 70 && data.totalCrops > 0) {
       alerts.add({
         'title': 'محاصيل تحتاج مراقبة',
-        'desc': '${data.cropHealth.warningCount} حقول تحتاج انتباهاً. تحقق من التفاصيل.',
+        'desc': 'متوسط صحة المحاصيل (${data.averageCropHealth.toStringAsFixed(0)}%) أقل من المستوى المثالي.',
         'type': 'تحذير',
         'time': 'الآن',
         'icon': Icons.warning_amber_rounded,
         'critical': false,
       });
     }
-    if (data.cropHealth.criticalCount > 0) {
-      alerts.add({
-        'title': 'تنبيه حرج',
-        'desc': '${data.cropHealth.criticalCount} حقول في حالة حرجة تستوجب تدخلاً فورياً.',
-        'type': 'حرجة',
-        'time': 'الآن',
-        'icon': Icons.emergency_rounded,
-        'critical': true,
-      });
-    }
+
     return alerts;
   }
 
@@ -129,7 +137,9 @@ class _AlertsPageState extends State<AlertsPage> {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isCritical ? AppColors.error.withValues(alpha: 0.3) : AppColors.border),
+        border: Border.all(
+            // ignore: deprecated_member_use
+            color: isCritical ? AppColors.error.withOpacity(0.3) : AppColors.border),
         boxShadow: const [BoxShadow(color: AppColors.shadow, blurRadius: 6, offset: Offset(0, 2))],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [

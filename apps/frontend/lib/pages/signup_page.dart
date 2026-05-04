@@ -58,8 +58,10 @@ class _SignupPageState extends State<SignupPage>
   }
 
   void _submit() async {
-    _errors.clear();
-    if (!_validate()) return;
+  _errors.clear();
+  if (!_validate()) return;
+
+  try {
     final auth = context.read<AuthProvider>();
     await auth.register(
       name: _nameCtrl.text.trim(),
@@ -67,7 +69,13 @@ class _SignupPageState extends State<SignupPage>
       password: _passCtrl.text,
       farmName: _farmCtrl.text.trim().isEmpty ? null : _farmCtrl.text.trim(),
     );
+  } catch (e) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('حدث خطأ غير متوقع: $e')),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -154,7 +162,7 @@ class _SignupPageState extends State<SignupPage>
                   _SignupField(
                       label: 'الاسم الكامل',
                       controller: _nameCtrl,
-                      hint: 'محمد أحمد',
+                      hint: 'الاسم',
                       icon: Icons.person_outline_rounded,
                       error: _errors['name']),
                   const SizedBox(height: 16),

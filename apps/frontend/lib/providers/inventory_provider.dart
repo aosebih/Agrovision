@@ -85,7 +85,7 @@ class InventoryProvider extends ChangeNotifier {
     try {
       final path = category != null ? '/inventory?category=$category&limit=50' : '/inventory?limit=50';
       final res = await _api.get(path);
-      final data = res['data'] as List? ?? res as List? ?? [];
+      final data = res['items'] as List? ?? res['data'] as List? ?? res as List? ?? [];
       _items = (data).map((e) => InventoryItem.fromJson(e as Map<String, dynamic>)).toList();
       _total = res['total'] ?? _items.length;
       _state = LoadState.loaded;

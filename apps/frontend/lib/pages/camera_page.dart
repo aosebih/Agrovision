@@ -147,7 +147,7 @@ class _CameraPageState extends State<CameraPage> {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 22),
-        decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(16), border: Border.all(color: color.withValues(alpha: 0.25))),
+        decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(16), border: Border.all(color: color.withOpacity(0.25))),
         child: Column(children: [
           Icon(icon, size: 34, color: color),
           const SizedBox(height: 8),

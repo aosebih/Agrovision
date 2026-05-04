@@ -1,4 +1,3 @@
-/// Central HTTP client for all backend communication.
 library;
 
 import 'dart:async';
@@ -6,6 +5,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiException implements Exception {
   final int statusCode;
@@ -16,24 +16,41 @@ class ApiException implements Exception {
 }
 
 class ApiClient extends ChangeNotifier {
-  static const String baseUrl = 'http://10.0.2.2:3000/api/v1';
+  static const String baseUrl = 'http://10.124.51.124:3000/api/v1';
   static const Duration _timeout = Duration(seconds: 30);
+  static const _tokenKey = 'auth_token';
 
   final http.Client _client;
   String? _token;
+  late final Future<void> ready;
 
-  ApiClient({http.Client? client}) : _client = client ?? http.Client();
+  ApiClient({http.Client? client}) : _client = client ?? http.Client() {
+    ready = _loadToken();
+  }
 
   String? get token => _token;
   bool get isAuthenticated => _token != null;
 
-  void setToken(String token) {
+  Future<void> _loadToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString(_tokenKey);
+    if (saved != null) {
+      _token = saved;
+      notifyListeners();
+    }
+  }
+
+  Future<void> setToken(String token) async {
     _token = token;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_tokenKey, token);
     notifyListeners();
   }
 
-  void clearToken() {
+  Future<void> clearToken() async {
     _token = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_tokenKey);
     notifyListeners();
   }
 

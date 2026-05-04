@@ -6,12 +6,18 @@ import { CreateCropDto } from './dto/create-crop.dto';
 import { UpdateCropDto } from './dto/update-crop.dto';
 import { PaginationDto, PaginatedResult } from '../common/dto/pagination.dto';
 
+const DEFAULT_FIELD_ID = '7b6b4f0f-f245-4e00-80cb-b03c8e30d6f2'; //remove after adding field ui
+
 @Injectable()
 export class CropsService {
   constructor(@InjectRepository(Crop) private readonly cropRepo: Repository<Crop>) {}
 
   async create(userId: string, dto: CreateCropDto): Promise<Crop> {
-    const crop = this.cropRepo.create({ ...dto, userId });
+    const crop = this.cropRepo.create({
+      ...dto,
+      userId,
+      fieldId: dto.fieldId ?? DEFAULT_FIELD_ID, // remove when adding field ui ?? DEFAULT_FIELD_ID
+    });
     return this.cropRepo.save(crop);
   }
 
