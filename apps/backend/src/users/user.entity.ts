@@ -26,4 +26,23 @@ export class User extends BaseEntity {
 
   @Column({ default: true })
   isActive: boolean;
+
+  // ── Settings columns ──────────────────────────────────────────────────────
+  @Column({ default: true })
+  notificationsEnabled: boolean;
+
+  @Column({ default: true })
+  weatherAlerts: boolean;
+
+  @Column({ default: false })
+  storageAlerts: boolean;
+
+  @Column({ default: false })
+  darkMode: boolean;
+
+  @Column({ default: 'ar' })
+  language: string;
+
+  @Column({ nullable: true })
+  location: string;
 }
