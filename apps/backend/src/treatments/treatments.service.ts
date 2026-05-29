@@ -6,13 +6,20 @@ import { PaginationDto, PaginatedResult } from '../common/dto/pagination.dto';
 
 @Injectable()
 export class TreatmentsService {
-  constructor(@InjectRepository(Treatment) private repo: Repository<Treatment>) {}
+  constructor(
+    @InjectRepository(Treatment) private repo: Repository<Treatment>,
+  ) {}
 
   async create(userId: string, dto: any) {
     return this.repo.save(this.repo.create({ ...dto, userId }));
   }
 
-  async findAll(userId: string, p: PaginationDto, status?: TreatmentStatus, fieldId?: string) {
+  async findAll(
+    userId: string,
+    p: PaginationDto,
+    status?: TreatmentStatus,
+    fieldId?: string,
+  ) {
     const where: any = { userId };
     if (status) where.status = status;
     if (fieldId) where.fieldId = fieldId;
@@ -27,7 +34,10 @@ export class TreatmentsService {
   }
 
   async findOne(id: string, userId: string) {
-    const treatment = await this.repo.findOne({ where: { id, userId }, relations: ['field', 'crop'] });
+    const treatment = await this.repo.findOne({
+      where: { id, userId },
+      relations: ['field', 'crop'],
+    });
     if (!treatment) throw new NotFoundException('Treatment not found');
     return treatment;
   }

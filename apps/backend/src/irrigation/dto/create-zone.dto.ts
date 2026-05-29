@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsEnum, IsNumber, IsUUID } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsNumber,
+  IsUUID,
+} from 'class-validator';
 import { IrrigationMethod } from '../irrigation-zone.entity';
 
 export class CreateZoneDto {

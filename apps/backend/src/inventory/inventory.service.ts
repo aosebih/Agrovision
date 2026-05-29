@@ -1,21 +1,32 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, ILike } from 'typeorm';
 import { InventoryItem, ItemCategory } from './inventory-item.entity';
 import { CreateInventoryItemDto } from './dto/create-inventory-item.dto';
 import { PaginationDto, PaginatedResult } from '../common/dto/pagination.dto';
+import { AlertsService } from '../alerts/alerts.service';
 
 @Injectable()
 export class InventoryService {
-  constructor(@InjectRepository(InventoryItem) private repo: Repository<InventoryItem>) {}
+  constructor(
+    @InjectRepository(InventoryItem) private repo: Repository<InventoryItem>,
+    private readonly alertsService: AlertsService,
+  ) {}
 
   async create(userId: string, dto: CreateInventoryItemDto) {
     return this.repo.save(this.repo.create({ ...dto, userId }));
   }
 
-  async findAll(userId: string, p: PaginationDto, category?: ItemCategory) {
+  // ── NEW: optional name search via ?search= ────────────────────────────────
+  async findAll(
+    userId: string,
+    p: PaginationDto,
+    category?: ItemCategory,
+    search?: string,
+  ) {
     const where: any = { userId };
     if (category) where.category = category;
+    if (search) where.name = ILike(`%${search}%`);
     const [data, total] = await this.repo.findAndCount({
       where,
       skip: p.skip,
@@ -31,7 +42,11 @@ export class InventoryService {
     return item;
   }
 
-  async update(id: string, userId: string, dto: Partial<CreateInventoryItemDto>) {
+  async update(
+    id: string,
+    userId: string,
+    dto: Partial<CreateInventoryItemDto>,
+  ) {
     const item = await this.findOne(id, userId);
     Object.assign(item, dto);
     return this.repo.save(item);
@@ -42,11 +57,22 @@ export class InventoryService {
     await this.repo.softDelete(id);
   }
 
+  // ── adjustStock — auto-triggers low-stock alert ───────────────────────────
   async adjustStock(id: string, userId: string, delta: number) {
     const item = await this.findOne(id, userId);
     item.quantity = Number(item.quantity) + delta;
     if (item.quantity < 0) item.quantity = 0;
-    return this.repo.save(item);
+    const saved = await this.repo.save(item);
+
+    if (saved.minStockLevel != null && saved.quantity <= saved.minStockLevel) {
+      await this.alertsService.create(userId, {
+        title: 'مخزون منخفض',
+        message: `${saved.name}: الكمية المتبقية (${saved.quantity} ${saved.unit ?? ''}) وصلت إلى الحد الأدنى`,
+        type: 'inventory',
+        severity: saved.quantity === 0 ? 'critical' : 'warning',
+      });
+    }
+    return saved;
   }
 
   async getLowStock(userId: string) {

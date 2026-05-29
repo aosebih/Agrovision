@@ -12,7 +12,13 @@ export class AlertsService {
     return this.repo.save(this.repo.create({ ...dto, userId }));
   }
 
-  async findAll(userId: string, p: PaginationDto, type?: AlertType, severity?: AlertSeverity, unreadOnly = false) {
+  async findAll(
+    userId: string,
+    p: PaginationDto,
+    type?: AlertType,
+    severity?: AlertSeverity,
+    unreadOnly = false,
+  ) {
     const where: any = { userId };
     if (type) where.type = type;
     if (severity) where.severity = severity;
@@ -54,5 +60,18 @@ export class AlertsService {
   async getUnreadCount(userId: string) {
     const count = await this.repo.count({ where: { userId, isRead: false } });
     return { count };
+  }
+
+  // ── NEW: delete a single alert ────────────────────────────────────────────
+  async remove(id: string, userId: string) {
+    await this.findOne(id, userId); // ownership check
+    await this.repo.softDelete(id);
+    return { message: 'Alert deleted' };
+  }
+
+  // ── NEW: delete all alerts for user ──────────────────────────────────────
+  async removeAll(userId: string) {
+    await this.repo.softDelete({ userId });
+    return { message: 'All alerts deleted' };
   }
 }

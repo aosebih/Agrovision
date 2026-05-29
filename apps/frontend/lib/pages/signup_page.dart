@@ -4,6 +4,10 @@ import '../temes/app_colors.dart';
 import '../temes/app_text_styles.dart';
 import '../providers/auth_provider.dart';
 
+import '../providers/settings_provider.dart';
+
+String _t(String lang, String ar, String fr) => lang == 'fr' ? fr : ar;
+
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
   @override
@@ -20,6 +24,7 @@ class _SignupPageState extends State<SignupPage>
   bool _obscure = true;
   bool _obscureConfirm = true;
   final _errors = <String, String?>{};
+  String _lang = 'ar';
   late AnimationController _animCtrl;
   late Animation<double> _fadeAnim;
 
@@ -49,10 +54,10 @@ class _SignupPageState extends State<SignupPage>
     final email = _emailCtrl.text.trim();
     final pass = _passCtrl.text;
     final confirm = _confirmCtrl.text;
-    if (name.length < 3) errs['name'] = 'الاسم يجب أن يكون 3 أحرف على الأقل';
-    if (!email.contains('@')) errs['email'] = 'يرجى إدخال بريد إلكتروني صحيح';
-    if (pass.length < 6) errs['pass'] = 'كلمة المرور 6 أحرف على الأقل';
-    if (pass != confirm) errs['confirm'] = 'كلمتا المرور غير متطابقتين';
+    if (name.length < 3) errs['name'] = _t(_lang, 'الاسم يجب أن يكون 3 أحرف على الأقل', 'Nom trop court (3 min)');
+    if (!email.contains('@')) errs['email'] = _t(_lang, 'يرجى إدخال بريد إلكتروني صحيح', 'Email invalide');
+    if (pass.length < 6) errs['pass'] = _t(_lang, 'كلمة المرور 6 أحرف على الأقل', 'Mot de passe trop court (6 min)');
+    if (pass != confirm) errs['confirm'] = _t(_lang, 'كلمتا المرور غير متطابقتين', 'Les mots de passe ne correspondent pas');
     setState(() => _errors.addAll(errs));
     return errs.isEmpty;
   }
@@ -79,10 +84,11 @@ class _SignupPageState extends State<SignupPage>
 
   @override
   Widget build(BuildContext context) {
+    _lang = context.watch<SettingsProvider>().settings.language;
     return Directionality(
-      textDirection: TextDirection.rtl,
+      textDirection: _lang == 'fr' ? TextDirection.ltr : TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: AppColors.bg(context),
         body: SafeArea(
           child: FadeTransition(
             opacity: _fadeAnim,
@@ -98,21 +104,21 @@ class _SignupPageState extends State<SignupPage>
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                            color: AppColors.surface,
+                            color: AppColors.surf(context),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: AppColors.border)),
-                        child: const Icon(Icons.arrow_back_ios_new_rounded,
-                            size: 16, color: AppColors.textSecondary),
+                            border: Border.all(color: AppColors.bord(context))),
+                        child: Icon(Icons.arrow_back_ios_new_rounded,
+                            size: 16, color: AppColors.txtSec(context)),
                       ),
                     ),
                   ]),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
                   Center(
                     child: Container(
                       width: 72,
                       height: 72,
                       decoration: BoxDecoration(
-                        color: AppColors.primaryLight,
+                        color: AppColors.primLight(context),
                         borderRadius: BorderRadius.circular(22),
                         // ignore: deprecated_member_use
                         border: Border.all(
@@ -124,11 +130,11 @@ class _SignupPageState extends State<SignupPage>
                     ),
                   ),
                   const SizedBox(height: 20),
-                  Text('إنشاء حساب جديد',
+                  Text(_t(_lang, 'إنشاء حساب جديد', 'Créer un compte'),
                       style: AppTextStyles.headlineLarge.copyWith(fontSize: 26),
                       textAlign: TextAlign.center),
                   const SizedBox(height: 6),
-                  Text('أنشئ حسابك وابدأ إدارة مزرعتك',
+                  Text(_t(_lang, 'أنشئ حسابك وابدأ إدارة مزرعتك', 'Créez votre compte et gérez votre ferme'),
                       style: AppTextStyles.bodySmall,
                       textAlign: TextAlign.center),
                   const SizedBox(height: 32),
@@ -160,14 +166,14 @@ class _SignupPageState extends State<SignupPage>
                     return const SizedBox.shrink();
                   }),
                   _SignupField(
-                      label: 'الاسم الكامل',
+                      label: _t(_lang, 'الاسم الكامل', 'Nom complet'),
                       controller: _nameCtrl,
-                      hint: 'الاسم',
+                      hint: _t(_lang, 'الاسم', 'Nom'),
                       icon: Icons.person_outline_rounded,
                       error: _errors['name']),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   _SignupField(
-                      label: 'البريد الإلكتروني',
+                      label: _t(_lang, 'البريد الإلكتروني', 'Email'),
                       controller: _emailCtrl,
                       hint: 'example@farm.com',
                       icon: Icons.email_outlined,
@@ -176,14 +182,14 @@ class _SignupPageState extends State<SignupPage>
                       error: _errors['email']),
                   const SizedBox(height: 16),
                   _SignupField(
-                      label: 'اسم المزرعة (اختياري)',
+                      label: _t(_lang, 'اسم المزرعة (اختياري)', 'Nom de la ferme (optionnel)'),
                       controller: _farmCtrl,
-                      hint: 'مزرعة النجاح',
+                      hint: _t(_lang, 'مزرعة النجاح', 'Ma ferme'),
                       icon: Icons.landscape_outlined,
                       error: null),
                   const SizedBox(height: 16),
                   _SignupField(
-                    label: 'كلمة المرور',
+                    label: _t(_lang, 'كلمة المرور', 'Mot de passe'),
                     controller: _passCtrl,
                     hint: '••••••••',
                     icon: Icons.lock_outline_rounded,
@@ -196,11 +202,11 @@ class _SignupPageState extends State<SignupPage>
                                 ? Icons.visibility_outlined
                                 : Icons.visibility_off_outlined,
                             size: 20,
-                            color: AppColors.textMuted)),
+                            color: AppColors.txtMuted(context))),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   _SignupField(
-                    label: 'تأكيد كلمة المرور',
+                    label: _t(_lang, 'تأكيد كلمة المرور', 'Confirmer le mot de passe'),
                     controller: _confirmCtrl,
                     hint: '••••••••',
                     icon: Icons.lock_outline_rounded,
@@ -214,12 +220,12 @@ class _SignupPageState extends State<SignupPage>
                                 ? Icons.visibility_outlined
                                 : Icons.visibility_off_outlined,
                             size: 20,
-                            color: AppColors.textMuted)),
+                            color: AppColors.txtMuted(context))),
                   ),
                   const SizedBox(height: 32),
                   Consumer<AuthProvider>(builder: (_, auth, __) {
                     return _GreenButton(
-                        label: 'إنشاء الحساب',
+                        label: _t(_lang, 'إنشاء الحساب', 'Créer le compte'),
                         isLoading: auth.isLoading,
                         onTap: _submit);
                   }),
@@ -227,12 +233,12 @@ class _SignupPageState extends State<SignupPage>
                   Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                     GestureDetector(
                       onTap: () => Navigator.pop(context),
-                      child: Text('تسجيل الدخول',
+                      child: Text(_t(_lang, 'تسجيل الدخول', 'Se connecter'),
                           style: AppTextStyles.bodySmall.copyWith(
                               color: AppColors.primary,
                               fontWeight: FontWeight.w600)),
                     ),
-                    Text(' لديك حساب بالفعل؟ ', style: AppTextStyles.bodySmall),
+                    Text(_t(_lang, ' لديك حساب بالفعل؟ ', ' Déjà un compte ? '), style: AppTextStyles.bodySmall),
                   ]),
                   const SizedBox(height: 32),
                 ],
@@ -274,14 +280,14 @@ class _SignupField extends StatelessWidget {
         children: [
           Text(label,
               style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
+                  color: AppColors.txt(context), fontWeight: FontWeight.w600)),
+          SizedBox(height: 8),
           Container(
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: AppColors.surf(context),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                  color: error != null ? AppColors.error : AppColors.border,
+                  color: error != null ? AppColors.error : AppColors.bord(context),
                   width: error != null ? 1.5 : 1),
               boxShadow: const [
                 BoxShadow(
@@ -296,12 +302,12 @@ class _SignupField extends StatelessWidget {
               obscureText: obscure,
               textDirection: isLtr ? TextDirection.ltr : null,
               style: AppTextStyles.bodyMedium
-                  .copyWith(color: AppColors.textPrimary),
+                  .copyWith(color: AppColors.txt(context)),
               decoration: InputDecoration(
                 hintText: hint,
                 hintStyle: AppTextStyles.bodySmall
-                    .copyWith(color: AppColors.textMuted),
-                prefixIcon: Icon(icon, size: 20, color: AppColors.textMuted),
+                    .copyWith(color: AppColors.txtMuted(context)),
+                prefixIcon: Icon(icon, size: 20, color: AppColors.txtMuted(context)),
                 suffixIcon: suffix != null
                     ? Padding(
                         padding: const EdgeInsets.only(left: 12), child: suffix)

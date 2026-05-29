@@ -55,9 +55,9 @@ class CardShell extends StatelessWidget {
     child: Container(
       padding: padding ?? const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.surf(context),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.bord(context)),
         boxShadow: const [BoxShadow(color: AppColors.shadow, blurRadius: 8, offset: Offset(0, 2))],
       ),
       child: child,
@@ -86,13 +86,13 @@ class PageHeader extends StatelessWidget {
             if (subtitle != null) Text(subtitle!, style: AppTextStyles.caption),
           ],
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: 8),
         GestureDetector(
           onTap: () => Navigator.of(context).maybePop(),
           child: Container(
             width: 38, height: 38,
-            decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.border)),
-            child: const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.textSecondary),
+            decoration: BoxDecoration(color: AppColors.surfAlt(context), borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.bord(context))),
+            child: Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.txtSec(context)),
           ),
         ),
       ],

@@ -1,4 +1,12 @@
-import { IsString, IsEnum, IsOptional, IsDateString, IsInt, IsBoolean, IsUUID } from 'class-validator';
+import {
+  IsString,
+  IsEnum,
+  IsOptional,
+  IsDateString,
+  IsInt,
+  IsBoolean,
+  IsUUID,
+} from 'class-validator';
 import { ScheduleType, RecurrenceType } from '../schedule.entity';
 
 export class CreateScheduleDto {

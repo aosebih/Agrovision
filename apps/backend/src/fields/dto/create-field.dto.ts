@@ -5,15 +5,27 @@ export class CreateFieldDto {
   @IsString()
   name: string;
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   location?: string;
 
-  @IsOptional() @IsNumber()
+  @IsOptional()
+  @IsNumber()
+  latitude?: number;
+
+  @IsOptional()
+  @IsNumber()
+  longitude?: number;
+
+  @IsOptional()
+  @IsNumber()
   areaHectares?: number;
 
-  @IsOptional() @IsEnum(FieldStatus)
+  @IsOptional()
+  @IsEnum(FieldStatus)
   status?: FieldStatus;
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   soilType?: string;
 }

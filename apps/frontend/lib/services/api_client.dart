@@ -16,7 +16,7 @@ class ApiException implements Exception {
 }
 
 class ApiClient extends ChangeNotifier {
-  static const String baseUrl = 'http://10.124.51.124:3000/api/v1';
+  static const String baseUrl = 'http://10.142.58.124:3000/api/v1';
   static const Duration _timeout = Duration(seconds: 30);
   static const _tokenKey = 'auth_token';
 

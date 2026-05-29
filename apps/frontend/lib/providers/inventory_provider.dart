@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../services/api_client.dart';
 
-enum LoadState { idle, loading, loaded, error }
+import 'load_state.dart';
 
 class InventoryItem {
   final String id;
@@ -48,15 +48,27 @@ class InventoryItem {
     }
   }
 
+  static double _toDouble(dynamic v) {
+    if (v == null) return 0.0;
+    if (v is num) return v.toDouble();
+    return double.tryParse(v.toString()) ?? 0.0;
+  }
+
+  static double? _toDoubleOrNull(dynamic v) {
+    if (v == null) return null;
+    if (v is num) return v.toDouble();
+    return double.tryParse(v.toString());
+  }
+
   factory InventoryItem.fromJson(Map<String, dynamic> j) => InventoryItem(
     id: j['id'],
     name: j['name'],
     category: j['category'] ?? 'other',
     brand: j['brand'],
-    quantity: (j['quantity'] as num).toDouble(),
+    quantity: _toDouble(j['quantity']),
     unit: j['unit'] ?? 'كغ',
-    minStockLevel: j['minStockLevel'] != null ? (j['minStockLevel'] as num).toDouble() : null,
-    pricePerUnit: j['pricePerUnit'] != null ? (j['pricePerUnit'] as num).toDouble() : null,
+    minStockLevel: _toDoubleOrNull(j['minStockLevel']),
+    pricePerUnit: _toDoubleOrNull(j['pricePerUnit']),
     supplier: j['supplier'],
     expiryDate: j['expiryDate'],
     notes: j['notes'],
@@ -78,23 +90,26 @@ class InventoryProvider extends ChangeNotifier {
   bool get isLoading => _state == LoadState.loading;
   int get total => _total;
 
-  Future<void> load({String? category}) async {
+  Future<void> load({String? category, String? search}) async {
     _state = LoadState.loading;
     _errorMessage = null;
     notifyListeners();
     try {
-      final path = category != null ? '/inventory?category=$category&limit=50' : '/inventory?limit=50';
-      final res = await _api.get(path);
-      final data = res['items'] as List? ?? res['data'] as List? ?? res as List? ?? [];
-      _items = (data).map((e) => InventoryItem.fromJson(e as Map<String, dynamic>)).toList();
-      _total = res['total'] ?? _items.length;
+      final params = <String>['limit=50'];
+      if (category != null) params.add('category=\$category');
+      if (search != null && search.isNotEmpty) params.add('search=\${Uri.encodeComponent(search)}');
+      final res = await _api.get('/inventory?\${params.join("&")}');
+      final raw = res is Map ? (res['items'] ?? res['data'] ?? []) : res;
+      final data = raw is List ? raw : <dynamic>[];
+      _items = data.map((e) => InventoryItem.fromJson(e as Map<String, dynamic>)).toList();
+      _total = (res is Map ? res['total'] : null) ?? _items.length;
       _state = LoadState.loaded;
     } on ApiException catch (e) {
       _state = LoadState.error;
       _errorMessage = e.message;
-    } catch (_) {
+    } catch (e) {
       _state = LoadState.error;
-      _errorMessage = 'حدث خطأ غير متوقع';
+      _errorMessage = e.toString();
     }
     notifyListeners();
   }
@@ -146,6 +161,36 @@ class InventoryProvider extends ChangeNotifier {
       _errorMessage = e.message;
       notifyListeners();
       return false;
+    }
+  }
+  // ── Adjust stock +/- ──────────────────────────────────────────────────────
+  Future<void> adjustStock(String id, int delta) async {
+    try {
+      final res = await _api.patch('/inventory/$id/adjust', {'delta': delta});
+      final updated = InventoryItem.fromJson(res as Map<String, dynamic>);
+      _items = _items.map((i) => i.id == id ? updated : i).toList();
+      notifyListeners();
+    } on ApiException catch (e) {
+      _errorMessage = e.message;
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  // ── Update item fields ────────────────────────────────────────────────────
+  Future<void> updateItem(String id, {String? name, double? minStockLevel}) async {
+    final body = <String, dynamic>{};
+    if (name != null) body['name'] = name;
+    if (minStockLevel != null) body['minStockLevel'] = minStockLevel;
+    if (body.isEmpty) return;
+    try {
+      final res = await _api.patch('/inventory/$id', body);
+      final updated = InventoryItem.fromJson(res as Map<String, dynamic>);
+      _items = _items.map((i) => i.id == id ? updated : i).toList();
+      notifyListeners();
+    } on ApiException catch (e) {
+      _errorMessage = e.message;
+      notifyListeners();
     }
   }
 }

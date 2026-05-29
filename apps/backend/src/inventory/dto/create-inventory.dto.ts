@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsEnum, IsNumber, IsDateString } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsNumber,
+  IsDateString,
+} from 'class-validator';
 import { ItemCategory } from '../inventory-item.entity';
 
 export class CreateInventoryItemDto {

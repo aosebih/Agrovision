@@ -3,7 +3,7 @@ import '../services/api_client.dart';
 import '../models/remote/dashboard_response.dart';
 import '../models/remote/crop_model.dart';
 
-enum LoadState { idle, loading, loaded, error }
+import 'load_state.dart';
 
 class DashboardProvider extends ChangeNotifier {
   final ApiClient _api;
@@ -41,8 +41,10 @@ class DashboardProvider extends ChangeNotifier {
       _data = DashboardData.fromJson(dashMap);
 
       final cropsRaw = results[1];
-      final cropsList = cropsRaw is Map && cropsRaw.containsKey('data')
-          ? cropsRaw['data'] as List
+      // Backend returns PaginatedResult: { items: [...], total, page, limit }
+      // Also handle legacy { data: [...] } and bare List shapes defensively.
+      final cropsList = cropsRaw is Map
+          ? (cropsRaw['items'] ?? cropsRaw['data'] ?? []) as List
           : cropsRaw as List;
       _crops = cropsList.map((e) => RemoteCrop.fromJson(e as Map<String, dynamic>)).toList();
 

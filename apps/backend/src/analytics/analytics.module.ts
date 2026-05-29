@@ -10,7 +10,16 @@ import { AnalyticsService } from './analytics.service';
 import { AnalyticsController } from './analytics.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Crop, IrrigationEvent, FertilizerApplication, Alert, Treatment, InventoryItem])],
+  imports: [
+    TypeOrmModule.forFeature([
+      Crop,
+      IrrigationEvent,
+      FertilizerApplication,
+      Alert,
+      Treatment,
+      InventoryItem,
+    ]),
+  ],
   controllers: [AnalyticsController],
   providers: [AnalyticsService],
 })

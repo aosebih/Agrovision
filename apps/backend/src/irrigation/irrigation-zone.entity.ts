@@ -27,7 +27,13 @@ export class IrrigationZone extends BaseEntity {
   @Column({ type: 'enum', enum: IrrigationMethod, nullable: true })
   method: IrrigationMethod;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true, name: 'flow_rate_lph' })
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: true,
+    name: 'flow_rate_lph',
+  })
   flowRateLph: number;
 
   @Column({ nullable: true })
@@ -36,6 +42,6 @@ export class IrrigationZone extends BaseEntity {
   @Column({ default: 'inactive' })
   status: string;
 
-  @OneToMany(() => IrrigationEvent, event => event.zone)
+  @OneToMany(() => IrrigationEvent, (event) => event.zone)
   events: IrrigationEvent[];
 }

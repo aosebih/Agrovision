@@ -7,13 +7,19 @@ import { User } from '../users/user.entity';
 
 @Entity('fertilizer_applications')
 export class FertilizerApplication extends BaseEntity {
-  @ManyToOne(() => Fertilizer) @JoinColumn({ name: 'fertilizer_id' }) fertilizer: Fertilizer;
+  @ManyToOne(() => Fertilizer)
+  @JoinColumn({ name: 'fertilizer_id' })
+  fertilizer: Fertilizer;
   @Column({ name: 'fertilizer_id' }) fertilizerId: string;
 
-  @ManyToOne(() => Field, { nullable: true }) @JoinColumn({ name: 'field_id' }) field: Field;
+  @ManyToOne(() => Field, { nullable: true })
+  @JoinColumn({ name: 'field_id' })
+  field: Field;
   @Column({ name: 'field_id', nullable: true }) fieldId: string;
 
-  @ManyToOne(() => Crop, { nullable: true }) @JoinColumn({ name: 'crop_id' }) crop: Crop;
+  @ManyToOne(() => Crop, { nullable: true })
+  @JoinColumn({ name: 'crop_id' })
+  crop: Crop;
   @Column({ name: 'crop_id', nullable: true }) cropId: string;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 }) quantity: number;

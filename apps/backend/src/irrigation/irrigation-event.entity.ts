@@ -14,7 +14,7 @@ export class IrrigationEvent extends BaseEntity {
   @Column({ name: 'zone_id' })
   zoneId: string;
 
-  @ManyToOne(() => IrrigationZone, zone => zone.events)
+  @ManyToOne(() => IrrigationZone, (zone) => zone.events)
   @JoinColumn({ name: 'zone_id' })
   zone: IrrigationZone;
 
@@ -30,7 +30,13 @@ export class IrrigationEvent extends BaseEntity {
   @Column({ type: 'int', name: 'duration_minutes', nullable: true })
   durationMinutes: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true, name: 'water_used_liters' })
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: true,
+    name: 'water_used_liters',
+  })
   waterUsedLiters: number;
 
   @Column({ type: 'enum', enum: EventStatus, default: EventStatus.SCHEDULED })

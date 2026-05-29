@@ -12,14 +12,14 @@ class FertilizerDetailPage extends StatelessWidget {
   Widget build(BuildContext context) => Directionality(
         textDirection: TextDirection.rtl,
         child: Scaffold(
-          backgroundColor: AppColors.background,
+          backgroundColor: AppColors.bg(context),
           body: SafeArea(
               child: SingleChildScrollView(
             padding: const EdgeInsets.all(20),
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               const PageHeader(title: 'تفاصيل السماد'),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
 
               // Hero card
               CardShell(
@@ -30,7 +30,7 @@ class FertilizerDetailPage extends StatelessWidget {
                         width: 80,
                         height: 80,
                         decoration: BoxDecoration(
-                            color: AppColors.primaryLight,
+                            color: AppColors.primLight(context),
                             borderRadius: BorderRadius.circular(14)),
                         child: const Icon(Icons.eco_rounded,
                             size: 44, color: AppColors.primary)),
@@ -69,12 +69,12 @@ class FertilizerDetailPage extends StatelessWidget {
                           Text('من ${item.capacityKg.toInt()} ${item.unit}',
                               style: AppTextStyles.bodySmall),
                         ]),
-                    const SizedBox(height: 10),
+                    SizedBox(height: 10),
                     ClipRRect(
                         borderRadius: BorderRadius.circular(4),
                         child: LinearProgressIndicator(
                             value: item.percentage,
-                            backgroundColor: AppColors.surfaceAlt,
+                            backgroundColor: AppColors.surfAlt(context),
                             valueColor: AlwaysStoppedAnimation<Color>(
                                 item.status == 'low'
                                     ? AppColors.error
@@ -103,7 +103,7 @@ class FertilizerDetailPage extends StatelessWidget {
                           Text('التركيبة (N-P-K)',
                               style: AppTextStyles.headlineMedium),
                         ]),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
@@ -116,11 +116,11 @@ class FertilizerDetailPage extends StatelessWidget {
                     Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                            color: AppColors.surfaceAlt,
+                            color: AppColors.surfAlt(context),
                             borderRadius: BorderRadius.circular(10)),
                         child: Row(children: [
-                          const Icon(Icons.info_outline_rounded,
-                              size: 16, color: AppColors.textMuted),
+                          Icon(Icons.info_outline_rounded,
+                              size: 16, color: AppColors.txtMuted(context)),
                           const SizedBox(width: 8),
                           Expanded(
                               child: Text(

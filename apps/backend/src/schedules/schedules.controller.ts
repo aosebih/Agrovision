@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { SchedulesService } from './schedules.service';
@@ -17,7 +27,11 @@ export class SchedulesController {
   }
 
   @Get()
-  findAll(@CurrentUser('id') uid: string, @Query() p: PaginationDto, @Query('type') type?: ScheduleType) {
+  findAll(
+    @CurrentUser('id') uid: string,
+    @Query() p: PaginationDto,
+    @Query('type') type?: ScheduleType,
+  ) {
     return this.service.findAll(uid, p, type);
   }
 
@@ -32,7 +46,11 @@ export class SchedulesController {
   }
 
   @Patch(':id')
-  update(@CurrentUser('id') uid: string, @Param('id') id: string, @Body() dto: CreateScheduleDto) {
+  update(
+    @CurrentUser('id') uid: string,
+    @Param('id') id: string,
+    @Body() dto: CreateScheduleDto,
+  ) {
     return this.service.update(id, uid, dto);
   }
 

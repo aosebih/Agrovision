@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
@@ -11,7 +15,9 @@ export class UsersService {
   constructor(@InjectRepository(User) private userRepo: Repository<User>) {}
 
   async create(dto: CreateUserDto): Promise<User> {
-    const existing = await this.userRepo.findOne({ where: { email: dto.email } });
+    const existing = await this.userRepo.findOne({
+      where: { email: dto.email },
+    });
     if (existing) throw new ConflictException('Email already exists');
     const hashed = await bcrypt.hash(dto.password, 10);
     const user = this.userRepo.create({ ...dto, password: hashed });
@@ -37,11 +43,19 @@ export class UsersService {
     const user = await this.findById(id);
     if (!user) throw new NotFoundException('User not found');
     if (dto.password) {
-      const hashedPassword = await bcrypt.hash(dto.password, 10);
-      Object.assign(user, { ...dto, password: hashedPassword });
+      const hashed = await bcrypt.hash(dto.password, 10);
+      Object.assign(user, { ...dto, password: hashed });
     } else {
       Object.assign(user, dto);
     }
     return this.userRepo.save(user);
+  }
+
+  // ── NEW: soft-delete account ─────────────────────────────────────────────
+  async remove(id: string): Promise<{ message: string }> {
+    const user = await this.findById(id);
+    if (!user) throw new NotFoundException('User not found');
+    await this.userRepo.softDelete(id);
+    return { message: 'Account deleted' };
   }
 }

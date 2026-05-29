@@ -12,7 +12,13 @@ export class ActivitiesService {
     return this.repo.save(this.repo.create({ ...dto, userId }));
   }
 
-  async findAll(userId: string, p: PaginationDto, type?: ActivityType, fieldId?: string, cropId?: string) {
+  async findAll(
+    userId: string,
+    p: PaginationDto,
+    type?: ActivityType,
+    fieldId?: string,
+    cropId?: string,
+  ) {
     const where: any = { userId };
     if (type) where.type = type;
     if (fieldId) where.fieldId = fieldId;
@@ -41,5 +47,14 @@ export class ActivitiesService {
   async remove(id: string, userId: string) {
     await this.findOne(id, userId);
     await this.repo.softDelete(id);
+    return { message: 'Activity deleted' };
+  }
+
+  // ── NEW: export all for CSV ───────────────────────────────────────────────
+  async exportAll(userId: string): Promise<Activity[]> {
+    return this.repo.find({
+      where: { userId },
+      order: { performedAt: 'DESC' },
+    });
   }
 }

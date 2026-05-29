@@ -8,8 +8,10 @@ import { PaginationDto, PaginatedResult } from '../common/dto/pagination.dto';
 @Injectable()
 export class IrrigationService {
   constructor(
-    @InjectRepository(IrrigationZone) private zoneRepo: Repository<IrrigationZone>,
-    @InjectRepository(IrrigationEvent) private eventRepo: Repository<IrrigationEvent>,
+    @InjectRepository(IrrigationZone)
+    private zoneRepo: Repository<IrrigationZone>,
+    @InjectRepository(IrrigationEvent)
+    private eventRepo: Repository<IrrigationEvent>,
   ) {}
 
   async createZone(userId: string, dto: any) {
@@ -20,13 +22,19 @@ export class IrrigationService {
     const where: any = { userId };
     if (fieldId) where.fieldId = fieldId;
     const [data, total] = await this.zoneRepo.findAndCount({
-      where, skip: p.skip, take: p.limit, relations: ['field'],
+      where,
+      skip: p.skip,
+      take: p.limit,
+      relations: ['field'],
     });
     return new PaginatedResult(data, total, p.page, p.limit);
   }
 
   async findOneZone(id: string, userId: string) {
-    const z = await this.zoneRepo.findOne({ where: { id, userId }, relations: ['field'] });
+    const z = await this.zoneRepo.findOne({
+      where: { id, userId },
+      relations: ['field'],
+    });
     if (!z) throw new NotFoundException('Irrigation zone not found');
     return z;
   }
@@ -39,10 +47,13 @@ export class IrrigationService {
 
   async activateZone(id: string, userId: string) {
     const z = await this.findOneZone(id, userId);
-    z.status = 'active' as any;
+    z.status = 'active';
     const event = this.eventRepo.create({
-      zoneId: z.id, startedAt: new Date(),
-      status: EventStatus.ACTIVE, triggeredBy: 'manual', userId,
+      zoneId: z.id,
+      startedAt: new Date(),
+      status: EventStatus.ACTIVE,
+      triggeredBy: 'manual',
+      userId,
     });
     await this.eventRepo.save(event);
     return this.zoneRepo.save(z);
@@ -50,7 +61,7 @@ export class IrrigationService {
 
   async stopZone(id: string, userId: string) {
     const z = await this.findOneZone(id, userId);
-    z.status = 'inactive' as any;
+    z.status = 'inactive';
     const activeEvent = await this.eventRepo.findOne({
       where: { zoneId: z.id, status: EventStatus.ACTIVE },
       order: { startedAt: 'DESC' },
@@ -58,7 +69,8 @@ export class IrrigationService {
     if (activeEvent) {
       activeEvent.endedAt = new Date();
       activeEvent.status = EventStatus.COMPLETED;
-      const diffMs = activeEvent.endedAt.getTime() - activeEvent.startedAt.getTime();
+      const diffMs =
+        activeEvent.endedAt.getTime() - activeEvent.startedAt.getTime();
       activeEvent.durationMinutes = Math.round(diffMs / 60000);
       await this.eventRepo.save(activeEvent);
     }
@@ -73,14 +85,20 @@ export class IrrigationService {
     const where: any = { userId };
     if (zoneId) where.zoneId = zoneId;
     const [data, total] = await this.eventRepo.findAndCount({
-      where, skip: p.skip, take: p.limit,
-      relations: ['zone'], order: { startedAt: 'DESC' },
+      where,
+      skip: p.skip,
+      take: p.limit,
+      relations: ['zone'],
+      order: { startedAt: 'DESC' },
     });
     return new PaginatedResult(data, total, p.page, p.limit);
   }
 
   async stopAll(userId: string) {
-    await this.zoneRepo.update({ userId, status: 'active' as any }, { status: 'inactive' as any });
+    await this.zoneRepo.update(
+      { userId, status: 'active' },
+      { status: 'inactive' },
+    );
     await this.eventRepo.update(
       { userId, status: EventStatus.ACTIVE },
       { status: EventStatus.COMPLETED, endedAt: new Date() },

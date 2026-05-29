@@ -15,13 +15,31 @@ export class Fertilizer extends BaseEntity {
   @Column({ nullable: true })
   type: string;
 
-  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true, name: 'nitrogen_pct' })
+  @Column({
+    type: 'decimal',
+    precision: 5,
+    scale: 2,
+    nullable: true,
+    name: 'nitrogen_pct',
+  })
   nitrogenPct: number;
 
-  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true, name: 'phosphorus_pct' })
+  @Column({
+    type: 'decimal',
+    precision: 5,
+    scale: 2,
+    nullable: true,
+    name: 'phosphorus_pct',
+  })
   phosphorusPct: number;
 
-  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true, name: 'potassium_pct' })
+  @Column({
+    type: 'decimal',
+    precision: 5,
+    scale: 2,
+    nullable: true,
+    name: 'potassium_pct',
+  })
   potassiumPct: number;
 
   @Column({ nullable: true })

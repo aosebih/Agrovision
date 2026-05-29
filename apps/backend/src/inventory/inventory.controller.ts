@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { InventoryService } from './inventory.service';
@@ -16,9 +26,15 @@ export class InventoryController {
     return this.service.create(uid, dto);
   }
 
+  // ── NEW: accepts optional ?search=xxx ────────────────────────────────────
   @Get()
-  findAll(@CurrentUser('id') uid: string, @Query() p: PaginationDto, @Query('category') cat?: ItemCategory) {
-    return this.service.findAll(uid, p, cat);
+  findAll(
+    @CurrentUser('id') uid: string,
+    @Query() p: PaginationDto,
+    @Query('category') cat?: ItemCategory,
+    @Query('search') search?: string,
+  ) {
+    return this.service.findAll(uid, p, cat, search);
   }
 
   @Get('low-stock')
@@ -32,12 +48,20 @@ export class InventoryController {
   }
 
   @Patch(':id')
-  update(@CurrentUser('id') uid: string, @Param('id') id: string, @Body() dto: CreateInventoryItemDto) {
+  update(
+    @CurrentUser('id') uid: string,
+    @Param('id') id: string,
+    @Body() dto: CreateInventoryItemDto,
+  ) {
     return this.service.update(id, uid, dto);
   }
 
   @Patch(':id/adjust')
-  adjust(@CurrentUser('id') uid: string, @Param('id') id: string, @Body('delta') delta: number) {
+  adjust(
+    @CurrentUser('id') uid: string,
+    @Param('id') id: string,
+    @Body('delta') delta: number,
+  ) {
     return this.service.adjustStock(id, uid, delta);
   }
 

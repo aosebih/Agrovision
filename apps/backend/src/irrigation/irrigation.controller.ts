@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Patch, Body, Param, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { IrrigationService } from './irrigation.service';
@@ -17,7 +26,11 @@ export class IrrigationController {
   }
 
   @Get('zones')
-  findZones(@CurrentUser('id') uid: string, @Query() p: PaginationDto, @Query('fieldId') fieldId?: string) {
+  findZones(
+    @CurrentUser('id') uid: string,
+    @Query() p: PaginationDto,
+    @Query('fieldId') fieldId?: string,
+  ) {
     return this.service.findAllZones(uid, p, fieldId);
   }
 
@@ -27,7 +40,11 @@ export class IrrigationController {
   }
 
   @Patch('zones/:id')
-  updateZone(@CurrentUser('id') uid: string, @Param('id') id: string, @Body() dto: CreateZoneDto) {
+  updateZone(
+    @CurrentUser('id') uid: string,
+    @Param('id') id: string,
+    @Body() dto: CreateZoneDto,
+  ) {
     return this.service.updateZone(id, uid, dto);
   }
 
@@ -52,7 +69,11 @@ export class IrrigationController {
   }
 
   @Get('events')
-  findEvents(@CurrentUser('id') uid: string, @Query() p: PaginationDto, @Query('zoneId') zoneId?: string) {
+  findEvents(
+    @CurrentUser('id') uid: string,
+    @Query() p: PaginationDto,
+    @Query('zoneId') zoneId?: string,
+  ) {
     return this.service.findEvents(uid, p, zoneId);
   }
 }

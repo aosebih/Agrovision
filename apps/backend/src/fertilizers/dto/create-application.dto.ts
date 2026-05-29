@@ -1,4 +1,10 @@
-import { IsUUID, IsNumber, IsString, IsDateString, IsOptional } from 'class-validator';
+import {
+  IsUUID,
+  IsNumber,
+  IsString,
+  IsDateString,
+  IsOptional,
+} from 'class-validator';
 
 export class CreateApplicationDto {
   @IsUUID() fertilizerId: string;

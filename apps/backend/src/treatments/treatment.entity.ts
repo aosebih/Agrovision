@@ -27,7 +27,11 @@ export class Treatment extends BaseEntity {
   @Column({ type: 'enum', enum: TreatmentType, default: TreatmentType.OTHER })
   type: TreatmentType;
 
-  @Column({ type: 'enum', enum: TreatmentStatus, default: TreatmentStatus.PLANNED })
+  @Column({
+    type: 'enum',
+    enum: TreatmentStatus,
+    default: TreatmentStatus.PLANNED,
+  })
   status: TreatmentStatus;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })

@@ -29,7 +29,11 @@ export class Activity extends BaseEntity {
   @Column({ type: 'enum', enum: ActivityType })
   type: ActivityType;
 
-  @Column({ type: 'enum', enum: ActivityStatus, default: ActivityStatus.PENDING })
+  @Column({
+    type: 'enum',
+    enum: ActivityStatus,
+    default: ActivityStatus.PENDING,
+  })
   status: ActivityStatus;
 
   @Column({ type: 'text', nullable: true })

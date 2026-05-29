@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../services/api_client.dart';
 
-enum LoadState { idle, loading, loaded, error }
+import 'load_state.dart';
 
 class DashboardSummary {
   final int totalCrops;

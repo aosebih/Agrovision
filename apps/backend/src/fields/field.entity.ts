@@ -16,6 +16,12 @@ export class Field extends BaseEntity {
   @Column({ nullable: true })
   location: string;
 
+  @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
+  latitude: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
+  longitude: number;
+
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
   areaHectares: number;
 

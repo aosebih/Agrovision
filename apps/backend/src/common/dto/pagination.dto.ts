@@ -20,7 +20,12 @@ export class PaginationDto {
 }
 
 export class PaginatedResult<T> {
-  constructor(public items: T[], public total: number, public page: number, public limit: number) {}
+  constructor(
+    public items: T[],
+    public total: number,
+    public page: number,
+    public limit: number,
+  ) {}
   get totalPages(): number {
     return Math.ceil(this.total / this.limit);
   }

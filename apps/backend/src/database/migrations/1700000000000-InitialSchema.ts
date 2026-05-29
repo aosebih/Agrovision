@@ -262,17 +262,41 @@ export class InitialSchema1700000000000 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    const tables = ['schedules', 'treatments', 'activities', 'alerts', 'inventory_items',
-      'irrigation_events', 'irrigation_zones', 'fertilizer_applications', 'fertilizers', 
-      'crops', 'fields', 'users'];
+    const tables = [
+      'schedules',
+      'treatments',
+      'activities',
+      'alerts',
+      'inventory_items',
+      'irrigation_events',
+      'irrigation_zones',
+      'fertilizer_applications',
+      'fertilizers',
+      'crops',
+      'fields',
+      'users',
+    ];
     for (const t of tables) {
       await queryRunner.query(`DROP TABLE IF EXISTS ${t} CASCADE`);
     }
-    const enums = ['schedule_type_enum', 'recurrence_type_enum', 'treatment_type_enum', 
-      'treatment_status_enum', 'activity_type_enum', 'activity_status_enum', 'alert_type_enum', 
-      'alert_severity_enum', 'item_category_enum', 'event_status_enum', 'zone_status_enum', 
-      'irrigation_method_enum', 'crop_status_enum', 'growth_stage_enum', 'field_status_enum', 
-      'user_role_enum'];
+    const enums = [
+      'schedule_type_enum',
+      'recurrence_type_enum',
+      'treatment_type_enum',
+      'treatment_status_enum',
+      'activity_type_enum',
+      'activity_status_enum',
+      'alert_type_enum',
+      'alert_severity_enum',
+      'item_category_enum',
+      'event_status_enum',
+      'zone_status_enum',
+      'irrigation_method_enum',
+      'crop_status_enum',
+      'growth_stage_enum',
+      'field_status_enum',
+      'user_role_enum',
+    ];
     for (const e of enums) {
       await queryRunner.query(`DROP TYPE IF EXISTS ${e}`);
     }

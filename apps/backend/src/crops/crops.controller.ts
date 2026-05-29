@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { CropsService } from './crops.service';
@@ -21,8 +31,9 @@ export class CropsController {
     @CurrentUser('id') userId: string,
     @Query() pagination: PaginationDto,
     @Query('fieldId') fieldId?: string,
+    @Query('search') search?: string,
   ) {
-    return this.cropsService.findAll(userId, pagination, fieldId);
+    return this.cropsService.findAll(userId, pagination, fieldId, search);
   }
 
   @Get(':id')
@@ -31,7 +42,11 @@ export class CropsController {
   }
 
   @Patch(':id')
-  update(@CurrentUser('id') userId: string, @Param('id') id: string, @Body() dto: UpdateCropDto) {
+  update(
+    @CurrentUser('id') userId: string,
+    @Param('id') id: string,
+    @Body() dto: UpdateCropDto,
+  ) {
     return this.cropsService.update(id, userId, dto);
   }
 

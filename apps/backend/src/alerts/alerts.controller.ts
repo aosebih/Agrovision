@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Patch, Body, Param, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { AlertsService } from './alerts.service';
@@ -50,5 +60,16 @@ export class AlertsController {
   @Patch(':id/acknowledge')
   acknowledge(@CurrentUser('id') uid: string, @Param('id') id: string) {
     return this.service.acknowledge(id, uid);
+  }
+
+  // ── NEW ──────────────────────────────────────────────────────────────────
+  @Delete()
+  removeAll(@CurrentUser('id') uid: string) {
+    return this.service.removeAll(uid);
+  }
+
+  @Delete(':id')
+  remove(@CurrentUser('id') uid: string, @Param('id') id: string) {
+    return this.service.remove(id, uid);
   }
 }

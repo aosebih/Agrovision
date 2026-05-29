@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../providers/load_state.dart';
 import '../temes/app_colors.dart';
 import '../temes/app_text_styles.dart';
 import '../widgets/app_widgets.dart';
 import '../providers/inventory_provider.dart';
 import 'add_crop_page.dart';
+import '../providers/settings_provider.dart';
+
+String _t(String lang, String ar, String fr) => lang == 'fr' ? fr : ar;
 
 class InventoryPage extends StatefulWidget {
   const InventoryPage({super.key});
@@ -15,6 +19,7 @@ class InventoryPage extends StatefulWidget {
 class _InventoryPageState extends State<InventoryPage> {
   int _selCat = 0;
   String _search = '';
+  String _lang = 'ar';
   final _searchCtrl = TextEditingController();
 
   static const _cats = [
@@ -34,8 +39,10 @@ class _InventoryPageState extends State<InventoryPage> {
   }
 
   void _load() {
-    final cat = _cats[_selCat]['value'];
-    context.read<InventoryProvider>().load(category: cat);
+    final cat = _cats[_selCat]['value'] as String?;
+    context
+        .read<InventoryProvider>()
+        .load(category: cat, search: _search.isNotEmpty ? _search : null);
   }
 
   @override
@@ -45,17 +52,15 @@ class _InventoryPageState extends State<InventoryPage> {
   }
 
   @override
-  Widget build(BuildContext context) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: Scaffold(
-          backgroundColor: AppColors.background,
+  Widget build(BuildContext context) {
+    _lang = context.watch<SettingsProvider>().settings.language;
+    final lang = _lang;
+    return Scaffold(
+          backgroundColor: AppColors.bg(context),
           floatingActionButton: FloatingActionButton(
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const AddCropPage()),
-          ),
-          backgroundColor: AppColors.primary,
-          child: const Icon(Icons.add_rounded, color: Colors.white),
+            onPressed: () => _showAddDialog(context),
+            backgroundColor: AppColors.primary,
+            child: Icon(Icons.add_rounded, color: Colors.white),
           ),
           body: Consumer<InventoryProvider>(
             builder: (context, provider, _) => SafeArea(
@@ -69,16 +74,17 @@ class _InventoryPageState extends State<InventoryPage> {
                       Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                              color: AppColors.surface,
+                              color: AppColors.surf(context),
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: AppColors.border)),
-                          child: const Icon(Icons.tune_rounded,
-                              size: 20, color: AppColors.textSecondary)),
+                              border:
+                                  Border.all(color: AppColors.bord(context))),
+                          child: Icon(Icons.tune_rounded,
+                              size: 20, color: AppColors.txtSec(context))),
                       Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text('المخزون', style: AppTextStyles.titleLarge),
-                            Text('إدارة مستلزمات مزرعتك',
+                            Text(_t(_lang, 'المخزون', 'Stock'), style: AppTextStyles.titleLarge),
+                            Text(_t(_lang, 'إدارة مستلزمات مزرعتك', 'Gérer les fournitures'),
                                 style: AppTextStyles.caption),
                           ]),
                     ],
@@ -90,19 +96,22 @@ class _InventoryPageState extends State<InventoryPage> {
                   child: Container(
                     height: 46,
                     decoration: BoxDecoration(
-                        color: AppColors.surface,
+                        color: AppColors.surf(context),
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppColors.border)),
+                        border: Border.all(color: AppColors.bord(context))),
                     child: TextField(
                       controller: _searchCtrl,
-                      onChanged: (v) => setState(() => _search = v.trim()),
+                      onChanged: (v) {
+                        setState(() => _search = v.trim());
+                        _load();
+                      },
                       style: AppTextStyles.bodySmall
-                          .copyWith(color: AppColors.textPrimary),
+                          .copyWith(color: AppColors.txt(context)),
                       decoration: InputDecoration(
-                        hintText: 'ابحث عن البذور أو الأسمدة...',
+                        hintText: _t(_lang, 'ابحث عن البذور أو الأسمدة...', 'Rechercher...'),
                         hintStyle: AppTextStyles.bodySmall,
-                        prefixIcon: const Icon(Icons.search_rounded,
-                            size: 20, color: AppColors.textMuted),
+                        prefixIcon: Icon(Icons.search_rounded,
+                            size: 20, color: AppColors.txtMuted(context)),
                         border: InputBorder.none,
                         contentPadding:
                             const EdgeInsets.symmetric(vertical: 12),
@@ -133,17 +142,20 @@ class _InventoryPageState extends State<InventoryPage> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 6),
                           decoration: BoxDecoration(
-                            color: sel ? AppColors.primary : AppColors.surface,
+                            color: sel
+                                ? AppColors.primary
+                                : AppColors.surf(context),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                                color:
-                                    sel ? AppColors.primary : AppColors.border),
+                                color: sel
+                                    ? AppColors.primary
+                                    : AppColors.bord(context)),
                           ),
                           child: Text(_cats[i]['label'] as String,
                               style: AppTextStyles.bodySmall.copyWith(
                                   color: sel
                                       ? Colors.white
-                                      : AppColors.textSecondary)),
+                                      : AppColors.txtSec(context))),
                         ),
                       );
                     },
@@ -152,8 +164,8 @@ class _InventoryPageState extends State<InventoryPage> {
               Expanded(child: _body(provider)),
             ])),
           ),
-        ),
-      );
+        );
+  }
 
   Widget _body(InventoryProvider provider) {
     if (provider.isLoading)
@@ -163,13 +175,13 @@ class _InventoryPageState extends State<InventoryPage> {
     if (provider.state == LoadState.error) {
       return Center(
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-        const Icon(Icons.cloud_off_rounded,
-            color: AppColors.textMuted, size: 48),
+        Icon(Icons.cloud_off_rounded,
+            color: AppColors.txtMuted(context), size: 48),
         const SizedBox(height: 12),
-        Text(provider.errorMessage ?? 'تعذر التحميل',
+        Text(provider.errorMessage ?? _t(_lang, 'تعذر التحميل', 'Erreur de chargement'),
             style: AppTextStyles.bodySmall),
         const SizedBox(height: 12),
-        GreenButton(label: 'إعادة المحاولة', onTap: _load),
+        GreenButton(label: _t(_lang, 'إعادة المحاولة', 'Réessayer'), onTap: _load),
       ]));
     }
 
@@ -184,16 +196,13 @@ class _InventoryPageState extends State<InventoryPage> {
     if (items.isEmpty) {
       return Center(
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-        const Icon(Icons.inventory_2_outlined,
-            color: AppColors.textMuted, size: 52),
+        Icon(Icons.inventory_2_outlined,
+            color: AppColors.txtMuted(context), size: 52),
         const SizedBox(height: 12),
-        Text('لا توجد عناصر في المخزون', style: AppTextStyles.bodySmall),
+        Text(_t(_lang, 'لا توجد عناصر في المخزون', 'Aucun article en stock'), style: AppTextStyles.bodySmall),
         const SizedBox(height: 12),
         GreenButton(
-        label: 'إضافة عنصر جديد', onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const AddCropPage()),
-     )),
+            label: _t(_lang, 'إضافة عنصر جديد', 'Ajouter un article'), onTap: () => _showAddDialog(context)),
       ]));
     }
 
@@ -205,7 +214,7 @@ class _InventoryPageState extends State<InventoryPage> {
         itemCount: items.length,
         separatorBuilder: (_, __) => const SizedBox(height: 12),
         itemBuilder: (_, i) =>
-            _InventoryCard(item: items[i], provider: provider),
+            _InventoryCard(item: items[i], provider: provider, lang: _lang),
       ),
     );
   }
@@ -217,7 +226,7 @@ class _InventoryPageState extends State<InventoryPage> {
       backgroundColor: Colors.transparent,
       builder: (_) => Directionality(
         textDirection: TextDirection.rtl,
-        child: _AddInventorySheet(onAdded: _load),
+        child: _AddInventorySheet(onAdded: _load, lang: _lang),
       ),
     );
   }
@@ -227,7 +236,8 @@ class _InventoryPageState extends State<InventoryPage> {
 class _InventoryCard extends StatelessWidget {
   final InventoryItem item;
   final InventoryProvider provider;
-  const _InventoryCard({required this.item, required this.provider});
+  final String lang;
+  const _InventoryCard({required this.item, required this.provider, required this.lang});
 
   Color get _statusColor => item.statusLabel == 'متوفر'
       ? AppColors.primary
@@ -270,7 +280,7 @@ class _InventoryCard extends StatelessWidget {
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             StatusBadge(
                 label: item.statusLabel, color: _statusColor, bg: _statusBg),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Row(children: [
               // Adjust buttons
               _AdjustButton(
@@ -285,14 +295,14 @@ class _InventoryCard extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.border),
+                      border: Border.all(color: AppColors.bord(context)),
                       borderRadius: BorderRadius.circular(8)),
-                  child: Text('تعديل الكمية',
+                  child: Text(_t(lang, 'تعديل الكمية', 'Modifier quantité'),
                       style: AppTextStyles.caption
-                          .copyWith(color: AppColors.textSecondary)),
+                          .copyWith(color: AppColors.txtSec(context))),
                 ),
               ),
-              const SizedBox(width: 6),
+              SizedBox(width: 6),
               _AdjustButton(
                 icon: Icons.add,
                 color: AppColors.primary,
@@ -306,28 +316,28 @@ class _InventoryCard extends StatelessWidget {
                   Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
             Text(item.name,
                 style: AppTextStyles.bodyMedium
-                    .copyWith(color: AppColors.textPrimary)),
+                    .copyWith(color: AppColors.txt(context))),
             Text(
                 '${item.quantity.toStringAsFixed(item.quantity == item.quantity.roundToDouble() ? 0 : 1)} ${item.unit}',
                 style: AppTextStyles.caption.copyWith(
                     fontWeight: FontWeight.w700, color: _statusColor)),
             Text(item.categoryLabel, style: AppTextStyles.caption),
           ])),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Container(
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
+                  color: AppColors.primLight(context),
                   borderRadius: BorderRadius.circular(12)),
               child: Icon(_icon, color: AppColors.primary, size: 28)),
         ]),
-        const SizedBox(height: 10),
+        SizedBox(height: 10),
         ClipRRect(
           borderRadius: BorderRadius.circular(4),
           child: LinearProgressIndicator(
               value: _pct,
-              backgroundColor: AppColors.surfaceAlt,
+              backgroundColor: AppColors.surfAlt(context),
               valueColor: AlwaysStoppedAnimation<Color>(_statusColor),
               minHeight: 6),
         ),
@@ -335,15 +345,15 @@ class _InventoryCard extends StatelessWidget {
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           GestureDetector(
             onTap: () => _confirmDelete(context),
-            child: Text('حذف',
+            child: Text(_t(lang, 'حذف', 'Supprimer'),
                 style: AppTextStyles.caption.copyWith(color: AppColors.error)),
           ),
           Text(
               item.minStockLevel != null
                   ? 'الحد الأدنى: ${item.minStockLevel!.toStringAsFixed(0)} ${item.unit}'
                   : '',
-              style:
-                  AppTextStyles.caption.copyWith(color: AppColors.textMuted)),
+              style: AppTextStyles.caption
+                  .copyWith(color: AppColors.txtMuted(context))),
         ]),
       ]),
     );
@@ -365,7 +375,7 @@ class _InventoryCard extends StatelessWidget {
       isScrollControlled: true,
       builder: (_) => Directionality(
         textDirection: TextDirection.rtl,
-        child: _AdjustQuantitySheet(item: item, provider: provider),
+        child: _AdjustQuantitySheet(item: item, provider: provider, lang: lang),
       ),
     );
   }
@@ -382,13 +392,16 @@ class _InventoryCard extends StatelessWidget {
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('إلغاء')),
+                child: Text(_t(lang, 'إلغاء', 'Annuler'))),
             TextButton(
               onPressed: () async {
+                // Capture provider before Navigator.pop invalidates context
+                final p = provider;
+                final id = item.id;
                 Navigator.pop(context);
-                await provider.deleteItem(item.id);
+                await p.deleteItem(id);
               },
-              child: Text('حذف',
+              child: Text(_t(lang, 'حذف', 'Supprimer'),
                   style:
                       AppTextStyles.bodySmall.copyWith(color: AppColors.error)),
             ),
@@ -427,7 +440,8 @@ class _AdjustButton extends StatelessWidget {
 class _AdjustQuantitySheet extends StatefulWidget {
   final InventoryItem item;
   final InventoryProvider provider;
-  const _AdjustQuantitySheet({required this.item, required this.provider});
+  final String lang;
+  const _AdjustQuantitySheet({required this.item, required this.provider, required this.lang});
 
   @override
   State<_AdjustQuantitySheet> createState() => _AdjustQuantitySheetState();
@@ -437,6 +451,7 @@ class _AdjustQuantitySheetState extends State<_AdjustQuantitySheet> {
   final _ctrl = TextEditingController();
   bool _isAdd = true;
   bool _loading = false;
+  String get lang => widget.lang;
 
   @override
   void dispose() {
@@ -459,8 +474,8 @@ class _AdjustQuantitySheetState extends State<_AdjustQuantitySheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-          color: AppColors.surface,
+      decoration: BoxDecoration(
+          color: AppColors.surf(context),
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       padding: EdgeInsets.fromLTRB(
           24, 16, 24, MediaQuery.of(context).viewInsets.bottom + 24),
@@ -473,7 +488,7 @@ class _AdjustQuantitySheetState extends State<_AdjustQuantitySheet> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                        color: AppColors.border,
+                        color: AppColors.bord(context),
                         borderRadius: BorderRadius.circular(2)))),
             const SizedBox(height: 20),
             Text('تعديل كمية: ${widget.item.name}',
@@ -481,13 +496,13 @@ class _AdjustQuantitySheetState extends State<_AdjustQuantitySheet> {
             const SizedBox(height: 6),
             Text('الكمية الحالية: ${widget.item.quantity} ${widget.item.unit}',
                 style: AppTextStyles.bodySmall),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
 
             // Add / Remove toggle
             Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                  color: AppColors.surfaceAlt,
+                  color: AppColors.surfAlt(context),
                   borderRadius: BorderRadius.circular(12)),
               child: Row(children: [
                 Expanded(
@@ -500,10 +515,12 @@ class _AdjustQuantitySheetState extends State<_AdjustQuantitySheet> {
                       color: !_isAdd ? AppColors.error : Colors.transparent,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Text('سحب من المخزون',
+                    child: Text(_t(lang, 'سحب من المخزون', 'Retirer du stock'),
                         textAlign: TextAlign.center,
                         style: AppTextStyles.bodySmall.copyWith(
-                            color: !_isAdd ? Colors.white : AppColors.textMuted,
+                            color: !_isAdd
+                                ? Colors.white
+                                : AppColors.txtMuted(context),
                             fontWeight: FontWeight.w600)),
                   ),
                 )),
@@ -517,35 +534,37 @@ class _AdjustQuantitySheetState extends State<_AdjustQuantitySheet> {
                       color: _isAdd ? AppColors.primary : Colors.transparent,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Text('إضافة للمخزون',
+                    child: Text(_t(lang, 'إضافة للمخزون', 'Ajouter au stock'),
                         textAlign: TextAlign.center,
                         style: AppTextStyles.bodySmall.copyWith(
-                            color: _isAdd ? Colors.white : AppColors.textMuted,
+                            color: _isAdd
+                                ? Colors.white
+                                : AppColors.txtMuted(context),
                             fontWeight: FontWeight.w600)),
                   ),
                 )),
               ]),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             Container(
               decoration: BoxDecoration(
-                  color: AppColors.background,
+                  color: AppColors.bg(context),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.border)),
+                  border: Border.all(color: AppColors.bord(context))),
               child: TextField(
                 controller: _ctrl,
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
                 textDirection: TextDirection.ltr,
                 style: AppTextStyles.bodyMedium
-                    .copyWith(color: AppColors.textPrimary),
+                    .copyWith(color: AppColors.txt(context)),
                 decoration: InputDecoration(
-                  hintText: 'أدخل الكمية',
+                  hintText: _t(lang, 'أدخل الكمية', 'Entrer la quantité'),
                   hintStyle: AppTextStyles.bodySmall,
                   suffixText: widget.item.unit,
                   suffixStyle: AppTextStyles.bodySmall
-                      .copyWith(color: AppColors.textMuted),
+                      .copyWith(color: AppColors.txtMuted(context)),
                   border: InputBorder.none,
                   contentPadding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -569,7 +588,7 @@ class _AdjustQuantitySheetState extends State<_AdjustQuantitySheet> {
                           height: 22,
                           child: CircularProgressIndicator(
                               color: Colors.white, strokeWidth: 2.5))
-                      : Text(_isAdd ? 'إضافة للمخزون' : 'سحب من المخزون',
+                      : Text(_isAdd ? _t(lang, 'إضافة للمخزون', 'Ajouter au stock') : _t(lang, 'سحب من المخزون', 'Retirer du stock'),
                           style: AppTextStyles.buttonText),
                 ),
               ),
@@ -582,7 +601,8 @@ class _AdjustQuantitySheetState extends State<_AdjustQuantitySheet> {
 // ── Add Inventory Bottom Sheet ─────────────────────────────────────────────────
 class _AddInventorySheet extends StatefulWidget {
   final VoidCallback onAdded;
-  const _AddInventorySheet({required this.onAdded});
+  final String lang;
+  const _AddInventorySheet({required this.onAdded, required this.lang});
   @override
   State<_AddInventorySheet> createState() => _AddInventorySheetState();
 }
@@ -595,6 +615,7 @@ class _AddInventorySheetState extends State<_AddInventorySheet> {
   String _category = 'other';
   bool _loading = false;
   String? _error;
+  String get lang => widget.lang;
 
   static const _categories = [
     {'label': 'سماد', 'value': 'fertilizer'},
@@ -616,11 +637,17 @@ class _AddInventorySheetState extends State<_AddInventorySheet> {
 
   void _submit() async {
     final name = _nameCtrl.text.trim();
-    final qty = double.tryParse(_qtyCtrl.text);
+    final qty = double.tryParse(_qtyCtrl.text.trim());
     final unit = _unitCtrl.text.trim();
+    final minRaw = _minCtrl.text.trim();
+    final minStock = minRaw.isNotEmpty ? double.tryParse(minRaw) : null;
 
     if (name.isEmpty || qty == null || unit.isEmpty) {
-      setState(() => _error = 'يرجى ملء جميع الحقول الإلزامية');
+      setState(() => _error = _t(lang, 'يرجى ملء جميع الحقول الإلزامية', 'Veuillez remplir tous les champs obligatoires'));
+      return;
+    }
+    if (minRaw.isNotEmpty && minStock == null) {
+      setState(() => _error = _t(lang, 'الحد الأدنى يجب أن يكون رقماً صحيحاً', 'Le seuil doit être un nombre valide'));
       return;
     }
     setState(() {
@@ -628,30 +655,31 @@ class _AddInventorySheetState extends State<_AddInventorySheet> {
       _error = null;
     });
     final provider = context.read<InventoryProvider>();
-    final ok = await provider.addItem({
+    final dto = <String, dynamic>{
       'name': name,
       'category': _category,
       'quantity': qty,
       'unit': unit,
-      if (_minCtrl.text.isNotEmpty)
-        'minStockLevel': double.tryParse(_minCtrl.text),
-    });
+      // Only include minStockLevel if the user actually entered a valid number
+      if (minStock != null) 'minStockLevel': minStock,
+    };
+    final ok = await provider.addItem(dto);
     if (mounted) {
       setState(() => _loading = false);
       if (ok) {
         widget.onAdded();
         Navigator.pop(context);
-      } else
-        // ignore: curly_braces_in_flow_control_structures
-        setState(() => _error = provider.errorMessage ?? 'حدث خطأ');
+      } else {
+        setState(() => _error = provider.errorMessage ?? _t(lang, 'حدث خطأ', 'Une erreur est survenue'));
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-          color: AppColors.surface,
+      decoration: BoxDecoration(
+          color: AppColors.surf(context),
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       padding: EdgeInsets.fromLTRB(
           24, 16, 24, MediaQuery.of(context).viewInsets.bottom + 24),
@@ -665,10 +693,10 @@ class _AddInventorySheetState extends State<_AddInventorySheet> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                        color: AppColors.border,
+                        color: AppColors.bord(context),
                         borderRadius: BorderRadius.circular(2)))),
-            const SizedBox(height: 20),
-            Text('إضافة عنصر جديد', style: AppTextStyles.headlineMedium),
+            SizedBox(height: 20),
+            Text(_t(lang, 'إضافة عنصر جديد', 'Nouvel article'), style: AppTextStyles.headlineMedium),
             const SizedBox(height: 20),
 
             if (_error != null)
@@ -687,15 +715,16 @@ class _AddInventorySheetState extends State<_AddInventorySheet> {
               ),
 
             _SheetField(
-                label: 'اسم العنصر *',
+                label: _t(lang, 'اسم العنصر *', 'Nom de l\'article *'),
                 controller: _nameCtrl,
-                hint: 'سماد نيتروجيني'),
+                hint: _t(lang, 'سماد نيتروجيني', 'Engrais azoté')),
             const SizedBox(height: 12),
 
             // Category chips
-            Text('الفئة',
+            Text(_t(lang, 'الفئة', 'Catégorie'),
                 style: AppTextStyles.bodySmall.copyWith(
-                    fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.txt(context))),
             const SizedBox(height: 8),
             Wrap(
                 spacing: 8,
@@ -708,16 +737,19 @@ class _AddInventorySheetState extends State<_AddInventorySheet> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 14, vertical: 7),
                       decoration: BoxDecoration(
-                          color: sel ? AppColors.primary : AppColors.surfaceAlt,
+                          color: sel
+                              ? AppColors.primary
+                              : AppColors.surfAlt(context),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                              color:
-                                  sel ? AppColors.primary : AppColors.border)),
+                              color: sel
+                                  ? AppColors.primary
+                                  : AppColors.bord(context))),
                       child: Text(c['label']!,
                           style: AppTextStyles.caption.copyWith(
                               color: sel
                                   ? Colors.white
-                                  : AppColors.textSecondary)),
+                                  : AppColors.txtSec(context))),
                     ),
                   );
                 }).toList()),
@@ -726,18 +758,18 @@ class _AddInventorySheetState extends State<_AddInventorySheet> {
             Row(children: [
               Expanded(
                   child: _SheetField(
-                      label: 'الكمية *',
+                      label: _t(lang, 'الكمية *', 'Quantité *'),
                       controller: _qtyCtrl,
                       hint: '100',
                       isNumber: true)),
               const SizedBox(width: 12),
               Expanded(
                   child: _SheetField(
-                      label: 'الوحدة *', controller: _unitCtrl, hint: 'كغ')),
+                      label: _t(lang, 'الوحدة *', 'Unité *'), controller: _unitCtrl, hint: 'kg')),
             ]),
             const SizedBox(height: 12),
             _SheetField(
-                label: 'الحد الأدنى للتنبيه',
+                label: _t(lang, 'الحد الأدنى للتنبيه', 'Seuil d\'alerte'),
                 controller: _minCtrl,
                 hint: '10',
                 isNumber: true),
@@ -768,7 +800,7 @@ class _AddInventorySheetState extends State<_AddInventorySheet> {
                           height: 22,
                           child: CircularProgressIndicator(
                               color: Colors.white, strokeWidth: 2.5))
-                      : Text('إضافة للمخزون', style: AppTextStyles.buttonText),
+                      : Text(_t(lang, 'إضافة للمخزون', 'Ajouter au stock'), style: AppTextStyles.buttonText),
                 ),
               ),
             ),
@@ -794,13 +826,13 @@ class _SheetField extends StatelessWidget {
         children: [
           Text(label,
               style: AppTextStyles.caption.copyWith(
-                  color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 6),
+                  color: AppColors.txt(context), fontWeight: FontWeight.w600)),
+          SizedBox(height: 6),
           Container(
             decoration: BoxDecoration(
-                color: AppColors.background,
+                color: AppColors.bg(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.border)),
+                border: Border.all(color: AppColors.bord(context))),
             child: TextField(
               controller: controller,
               keyboardType: isNumber
@@ -808,11 +840,11 @@ class _SheetField extends StatelessWidget {
                   : TextInputType.text,
               textDirection: isNumber ? TextDirection.ltr : null,
               style: AppTextStyles.bodySmall
-                  .copyWith(color: AppColors.textPrimary),
+                  .copyWith(color: AppColors.txt(context)),
               decoration: InputDecoration(
                 hintText: hint,
-                hintStyle:
-                    AppTextStyles.caption.copyWith(color: AppColors.textMuted),
+                hintStyle: AppTextStyles.caption
+                    .copyWith(color: AppColors.txtMuted(context)),
                 border: InputBorder.none,
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 12),

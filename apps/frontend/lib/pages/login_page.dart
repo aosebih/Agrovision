@@ -4,6 +4,10 @@ import '../temes/app_colors.dart';
 import '../temes/app_text_styles.dart';
 import '../providers/auth_provider.dart';
 import 'signup_page.dart';
+import '../providers/settings_provider.dart';
+
+String _t(String lang, String ar, String fr) => lang == 'fr' ? fr : ar;
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -41,28 +45,27 @@ class _LoginPageState extends State<LoginPage>
   }
 
   void _submit() async {
-  final email = _emailCtrl.text.trim();
-  final pass = _passCtrl.text;
-  setState(() => _emailValid = email.contains('@'));
-  if (!_emailValid || pass.isEmpty) return;
-
-  try {
-    final auth = context.read<AuthProvider>();
-    await auth.login(email: email, password: pass);
-  } catch (e) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('حدث خطأ غير متوقع: $e')),
-    );
+    final email = _emailCtrl.text.trim();
+    final pass = _passCtrl.text;
+    setState(() => _emailValid = email.contains('@'));
+    if (!_emailValid || pass.isEmpty) return;
+    final lang = context.read<SettingsProvider>().settings.language;
+    try {
+      final auth = context.read<AuthProvider>();
+      await auth.login(email: email, password: pass);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_t(lang, 'حدث خطأ غير متوقع: $e', 'Erreur inattendue: $e'))),
+      );
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: AppColors.background,
+    final lang = context.watch<SettingsProvider>().settings.language;
+    return Scaffold(
+        backgroundColor: AppColors.bg(context),
         body: SafeArea(
           child: FadeTransition(
             opacity: _fadeAnim,
@@ -74,31 +77,30 @@ class _LoginPageState extends State<LoginPage>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 24),
-                    // Logo / Brand
+                    SizedBox(height: 24),
+                    // Logo
                     Center(
                       child: Container(
-                        width: 80,
-                        height: 80,
+                        width: 100,
+                        height: 100,
                         decoration: BoxDecoration(
-                          color: AppColors.primaryLight,
                           borderRadius: BorderRadius.circular(24),
-                          // ignore: deprecated_member_use
-                          border: Border.all(
-                              // ignore: deprecated_member_use
-                              color: AppColors.primary.withOpacity(0.3)),
+                          border: Border.all(color: AppColors.bord(context)),
                         ),
-                        child: const Icon(Icons.agriculture_rounded,
-                            size: 44, color: AppColors.primary),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(24),
+                          child: Image.asset('assets/logo_app_2cp.jpg',
+                              fit: BoxFit.cover),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),
-                    Text('مرحباً بك',
+                    Text(_t(lang, 'مرحباً بك', 'Bienvenue'),
                         style:
                             AppTextStyles.headlineLarge.copyWith(fontSize: 28),
                         textAlign: TextAlign.center),
                     const SizedBox(height: 8),
-                    Text('سجّل دخولك لمتابعة مزرعتك',
+                    Text(_t(lang, 'سجّل دخولك لمتابعة مزرعتك', 'Connectez-vous à votre ferme'),
                         style: AppTextStyles.bodySmall,
                         textAlign: TextAlign.center),
                     const SizedBox(height: 40),
@@ -135,21 +137,21 @@ class _LoginPageState extends State<LoginPage>
 
                     // Email
                     // ignore: prefer_const_constructors
-                    _Label(text: 'البريد الإلكتروني'),
-                    const SizedBox(height: 8),
+                    _Label(text: _t(lang, 'البريد الإلكتروني', 'Email')),
+                    SizedBox(height: 8),
                     _Field(
                       controller: _emailCtrl,
                       hint: 'example@farm.com',
                       icon: Icons.email_outlined,
                       keyboardType: TextInputType.emailAddress,
                       isError: !_emailValid,
-                      errorText: 'يرجى إدخال بريد إلكتروني صحيح',
+                      errorText: _t(lang, 'يرجى إدخال بريد إلكتروني صحيح', 'Email invalide'),
                     ),
                     const SizedBox(height: 20),
 
                     // Password
                     // ignore: prefer_const_constructors
-                    _Label(text: 'كلمة المرور'),
+                    _Label(text: _t(lang, 'كلمة المرور', 'Mot de passe')),
                     const SizedBox(height: 8),
                     _Field(
                       controller: _passCtrl,
@@ -163,7 +165,7 @@ class _LoginPageState extends State<LoginPage>
                                 ? Icons.visibility_outlined
                                 : Icons.visibility_off_outlined,
                             size: 20,
-                            color: AppColors.textMuted),
+                            color: AppColors.txtMuted(context)),
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -171,7 +173,7 @@ class _LoginPageState extends State<LoginPage>
                     // Submit
                     Consumer<AuthProvider>(builder: (_, auth, __) {
                       return _GreenButton(
-                        label: 'تسجيل الدخول',
+                        label: _t(lang, 'تسجيل الدخول', 'Se connecter'),
                         isLoading: auth.isLoading,
                         onTap: _submit,
                       );
@@ -184,12 +186,12 @@ class _LoginPageState extends State<LoginPage>
                             context,
                             MaterialPageRoute(
                                 builder: (_) => const SignupPage())),
-                        child: Text('إنشاء حساب جديد',
+                        child: Text(_t(lang, 'إنشاء حساب جديد', 'Créer un compte'),
                             style: AppTextStyles.bodySmall.copyWith(
                                 color: AppColors.primary,
                                 fontWeight: FontWeight.w600)),
                       ),
-                      Text(' ليس لديك حساب؟ ', style: AppTextStyles.bodySmall),
+                      Text(_t(lang, ' ليس لديك حساب؟ ', ' Pas de compte ? '), style: AppTextStyles.bodySmall),
                     ]),
                     const SizedBox(height: 32),
                   ],
@@ -198,8 +200,7 @@ class _LoginPageState extends State<LoginPage>
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 }
 
@@ -211,7 +212,7 @@ class _Label extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(text,
       style: AppTextStyles.bodyMedium
-          .copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w600));
+          .copyWith(color: AppColors.txt(context), fontWeight: FontWeight.w600));
 }
 
 class _Field extends StatelessWidget {
@@ -241,10 +242,10 @@ class _Field extends StatelessWidget {
         children: [
           Container(
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: AppColors.surf(context),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                  color: isError ? AppColors.error : AppColors.border,
+                  color: isError ? AppColors.error : AppColors.bord(context),
                   width: isError ? 1.5 : 1),
               boxShadow: const [
                 BoxShadow(
@@ -259,12 +260,12 @@ class _Field extends StatelessWidget {
               obscureText: obscure,
               textDirection: TextDirection.ltr,
               style: AppTextStyles.bodyMedium
-                  .copyWith(color: AppColors.textPrimary),
+                  .copyWith(color: AppColors.txt(context)),
               decoration: InputDecoration(
                 hintText: hint,
                 hintStyle: AppTextStyles.bodySmall
-                    .copyWith(color: AppColors.textMuted),
-                prefixIcon: Icon(icon, size: 20, color: AppColors.textMuted),
+                    .copyWith(color: AppColors.txtMuted(context)),
+                prefixIcon: Icon(icon, size: 20, color: AppColors.txtMuted(context)),
                 suffixIcon: suffix != null
                     ? Padding(
                         padding: const EdgeInsets.only(left: 12), child: suffix)

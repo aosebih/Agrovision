@@ -32,7 +32,10 @@ export class AnalyticsController {
   }
 
   @Get('crop-health')
-  cropHealth(@CurrentUser('id') uid: string, @Query('fieldId') fieldId?: string) {
+  cropHealth(
+    @CurrentUser('id') uid: string,
+    @Query('fieldId') fieldId?: string,
+  ) {
     return this.service.getCropHealthTrend(uid, fieldId);
   }
 

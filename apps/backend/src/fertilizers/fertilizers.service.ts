@@ -11,7 +11,8 @@ import { PaginationDto, PaginatedResult } from '../common/dto/pagination.dto';
 export class FertilizersService {
   constructor(
     @InjectRepository(Fertilizer) private fertRepo: Repository<Fertilizer>,
-    @InjectRepository(FertilizerApplication) private appRepo: Repository<FertilizerApplication>,
+    @InjectRepository(FertilizerApplication)
+    private appRepo: Repository<FertilizerApplication>,
   ) {}
 
   async createFertilizer(userId: string, dto: CreateFertilizerDto) {
@@ -20,7 +21,9 @@ export class FertilizersService {
 
   async findAllFertilizers(userId: string, pagination: PaginationDto) {
     const [data, total] = await this.fertRepo.findAndCount({
-      where: { userId }, skip: pagination.skip, take: pagination.limit,
+      where: { userId },
+      skip: pagination.skip,
+      take: pagination.limit,
     });
     return new PaginatedResult(data, total, pagination.page, pagination.limit);
   }
@@ -31,7 +34,11 @@ export class FertilizersService {
     return f;
   }
 
-  async updateFertilizer(id: string, userId: string, dto: Partial<CreateFertilizerDto>) {
+  async updateFertilizer(
+    id: string,
+    userId: string,
+    dto: Partial<CreateFertilizerDto>,
+  ) {
     const f = await this.findOneFertilizer(id, userId);
     Object.assign(f, dto);
     return this.fertRepo.save(f);
@@ -46,13 +53,21 @@ export class FertilizersService {
     return this.appRepo.save(this.appRepo.create({ ...dto, userId }));
   }
 
-  async findApplications(userId: string, pagination: PaginationDto, fieldId?: string, fertilizerId?: string) {
+  async findApplications(
+    userId: string,
+    pagination: PaginationDto,
+    fieldId?: string,
+    fertilizerId?: string,
+  ) {
     const where: any = { userId };
     if (fieldId) where.fieldId = fieldId;
     if (fertilizerId) where.fertilizerId = fertilizerId;
     const [data, total] = await this.appRepo.findAndCount({
-      where, skip: pagination.skip, take: pagination.limit,
-      relations: ['fertilizer', 'field'], order: { appliedAt: 'DESC' },
+      where,
+      skip: pagination.skip,
+      take: pagination.limit,
+      relations: ['fertilizer', 'field'],
+      order: { appliedAt: 'DESC' },
     });
     return new PaginatedResult(data, total, pagination.page, pagination.limit);
   }

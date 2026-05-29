@@ -13,7 +13,8 @@ export enum ItemCategory {
 
 const numericTransformer = {
   to: (v: number | null) => v,
-  from: (v: string | null) => (v === null || v === undefined ? null : parseFloat(v)),
+  from: (v: string | null) =>
+    v === null || v === undefined ? null : parseFloat(v),
 };
 
 @Entity('inventory_items')
@@ -27,16 +28,33 @@ export class InventoryItem extends BaseEntity {
   @Column({ nullable: true })
   brand: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, transformer: numericTransformer })
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    transformer: numericTransformer,
+  })
   quantity: number;
 
   @Column()
   unit: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true, transformer: numericTransformer })
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: true,
+    transformer: numericTransformer,
+  })
   minStockLevel: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true, transformer: numericTransformer })
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: true,
+    transformer: numericTransformer,
+  })
   pricePerUnit: number;
 
   @Column({ nullable: true })

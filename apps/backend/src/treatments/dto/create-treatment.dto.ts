@@ -1,4 +1,11 @@
-import { IsString, IsOptional, IsEnum, IsNumber, IsDateString, IsUUID } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsNumber,
+  IsDateString,
+  IsUUID,
+} from 'class-validator';
 import { TreatmentType } from '../treatment.entity';
 
 export class CreateTreatmentDto {
