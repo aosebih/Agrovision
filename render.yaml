@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: farmers-helper-backend
+    runtime: docker
+    rootDir: apps/backend
+    envVars:
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: NODE_ENV
+        value: production
+
+  - type: web
+    name: farmers-helper-ai-backend
+    runtime: python
+    rootDir: apps/ai-backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
