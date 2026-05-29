@@ -1,0 +1,17 @@
+# Exported from Render on 2026-05-29T18:22:50Z
+version: "1"
+projects:
+- name: My project
+  environments:
+  - name: Production
+    services:
+    - type: web
+      name: Agrovision-1
+      runtime: python
+      repo: https://github.com/aosebih/Agrovision
+      plan: free
+      region: oregon
+      buildCommand: pip install -r requirements.txt
+      startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
+      autoDeployTrigger: commit
+      rootDir: apps/ai-backend
