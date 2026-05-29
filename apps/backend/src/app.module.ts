@@ -28,6 +28,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
         database: config.get('DB_NAME'),
         autoLoadEntities: true,
         synchronize: false,
+        ssl: { rejectUnauthorized: false },
       }),
       inject: [ConfigService],
     }),

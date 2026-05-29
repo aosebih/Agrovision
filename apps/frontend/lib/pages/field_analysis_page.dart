@@ -34,7 +34,7 @@ class FieldAnalysisPage extends StatelessWidget {
                         size: 20, color: AppColors.textSecondary)),
                 const Spacer(),
                 Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                  Text(crop.field, style: AppTextStyles.caption),
+                  Text(crop.fieldName, style: AppTextStyles.caption),
                   Row(children: [
                     if (crop.health > 0.85)
                       const Icon(Icons.check_circle_rounded,

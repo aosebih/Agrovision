@@ -12,6 +12,10 @@ class RemoteCrop {
   final String? notes;
   final String? fieldId;
   final Map<String, dynamic>? field;
+  final double humidity;
+  final double temp;
+  final double ndvi;
+  final int growthDay;
 
   const RemoteCrop({
     required this.id,
@@ -25,7 +29,13 @@ class RemoteCrop {
     this.notes,
     this.fieldId,
     this.field,
+    this.humidity = 45.0,
+    this.temp = 25.0,
+    this.ndvi = 0.65,
+    this.growthDay = 45,
   });
+
+  double get health => healthScore != null ? healthScore! / 100 : 0.75;
 
   factory RemoteCrop.fromJson(Map<String, dynamic> j) => RemoteCrop(
         id: j['id'] as String,
@@ -41,6 +51,10 @@ class RemoteCrop {
         notes: j['notes'] as String?,
         fieldId: j['fieldId'] as String?,
         field: j['field'] as Map<String, dynamic>?,
+        humidity: (j['humidity'] as num?)?.toDouble() ?? 45.0,
+        temp: (j['temp'] as num?)?.toDouble() ?? 25.0,
+        ndvi: (j['ndvi'] as num?)?.toDouble() ?? 0.65,
+        growthDay: (j['growthDay'] as num?)?.toInt() ?? 45,
       );
 
   /// Status color key

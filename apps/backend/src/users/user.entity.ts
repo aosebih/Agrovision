@@ -28,21 +28,21 @@ export class User extends BaseEntity {
   isActive: boolean;
 
   // ── Settings columns ──────────────────────────────────────────────────────
-  @Column({ default: true })
+  @Column({ name: 'notificationsEnabled', default: true })
   notificationsEnabled: boolean;
 
-  @Column({ default: true })
+  @Column({ name: 'weatherAlerts', default: true })
   weatherAlerts: boolean;
 
-  @Column({ default: false })
+  @Column({ name: 'storageAlerts', default: false })
   storageAlerts: boolean;
 
-  @Column({ default: false })
+  @Column({ name: 'darkMode', default: false })
   darkMode: boolean;
 
-  @Column({ default: 'ar' })
+  @Column({ name: 'language', default: 'ar' })
   language: string;
 
-  @Column({ nullable: true })
+  @Column({ name: 'location', nullable: true })
   location: string;
 }

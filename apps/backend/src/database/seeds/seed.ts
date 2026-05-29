@@ -12,7 +12,8 @@ async function seed() {
     password: process.env.DB_PASSWORD || 'postgres',
     database: process.env.DB_NAME || 'agri_db',
     entities: [__dirname + '/../../**/*.entity{.ts,.js}'],
-    synchronize: true,
+    ssl: { rejectUnauthorized: false },
+    synchronize: false,
   });
 
   await dataSource.initialize();

@@ -37,7 +37,7 @@ class FieldDetailPage extends StatelessWidget {
                         size: 20, color: AppColors.textSecondary)),
                 const Spacer(),
                 Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                  Text(crop.field, style: AppTextStyles.caption),
+                  Text(crop.fieldName, style: AppTextStyles.caption),
                   Row(children: [
                     GestureDetector(
                         onTap: () => Navigator.push(
@@ -122,7 +122,7 @@ class FieldDetailPage extends StatelessWidget {
                       Positioned(
                           bottom: 8,
                           left: 8,
-                          child: Text(crop.field,
+                          child: Text(crop.fieldName,
                               style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 11,
